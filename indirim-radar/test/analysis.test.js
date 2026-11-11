@@ -94,3 +94,14 @@ test('fiyat arttı + indirim etiketi = sahte', () => {
   assert.equal(r.status, STATUS.SAHTE);
   assert.equal(r.flags.ustuCiziliHicUygulanmadi, true);
 });
+
+test('küçük "fiyat düştü" iddiası + fiyat 30 günlük en düşüğün üstünde = sahte', () => {
+  const r = analyze(series([[10, 900, null], [20, 1100, null], [3, 1060, 1100]]));
+  assert.equal(r.status, STATUS.SAHTE);
+  assert.equal(r.flags.son30GundeDahaUcuzdu, true);
+});
+
+test('küçük ama gerçek düşüş sahte sayılmaz', () => {
+  const r = analyze(series([[40, 1000, null], [3, 972, 1000]]));
+  assert.equal(r.status, STATUS.YOK);
+});

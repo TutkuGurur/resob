@@ -10,6 +10,7 @@
     "guncelle": "node --disable-warning=ExperimentalWarning src/cli.js guncelle",
     "ekle": "node --disable-warning=ExperimentalWarning src/cli.js ekle",
     "kesif": "node --disable-warning=ExperimentalWarning src/cli.js kesif",
+    "rapor-html": "node --disable-warning=ExperimentalWarning src/cli.js rapor-html",
     "demo": "node --disable-warning=ExperimentalWarning src/cli.js demo",
     "rapor": "node --disable-warning=ExperimentalWarning src/cli.js rapor",
     "test": "node --disable-warning=ExperimentalWarning --test \"test/*.test.js\""

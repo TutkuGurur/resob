@@ -55,6 +55,9 @@ function open(file = config.dbPath) {
   db = new DatabaseSync(file);
   db.exec('PRAGMA journal_mode = WAL; PRAGMA foreign_keys = ON;');
   db.exec(SCHEMA);
+  // Eski veritabanları için kolon ekleme
+  const cols = db.prepare('PRAGMA table_info(products)').all().map((x) => x.name);
+  if (!cols.includes('offers_json')) db.exec('ALTER TABLE products ADD COLUMN offers_json TEXT');
   return db;
 }
 
@@ -72,8 +75,16 @@ function upsertProduct(p) {
     d.prepare(
       `UPDATE products SET title = COALESCE(?, title), image = COALESCE(?, image),
        brand = COALESCE(?, brand), category = COALESCE(?, category),
-       external_id = COALESCE(?, external_id) WHERE id = ?`
-    ).run(p.title ?? null, p.image ?? null, p.brand ?? null, p.category ?? null, p.externalId ?? null, existing.id);
+       external_id = COALESCE(?, external_id), offers_json = COALESCE(?, offers_json) WHERE id = ?`
+    ).run(
+      p.title ?? null,
+      p.image ?? null,
+      p.brand ?? null,
+      p.category ?? null,
+      p.externalId ?? null,
+      p.offers ? JSON.stringify(p.offers) : null,
+      existing.id
+    );
     return existing.id;
   }
   const r = d
@@ -103,6 +114,11 @@ function addSnapshot(productId, s) {
        VALUES (?, ?, ?, ?, ?, ?)`
     )
     .run(productId, s.price, s.listPrice ?? null, s.seller ?? null, s.inStock === false ? 0 : 1, s.capturedAt ?? now());
+}
+
+function lastSnapshotTime(productId) {
+  const r = open().prepare('SELECT MAX(captured_at) AS t FROM price_snapshots WHERE product_id = ?').get(productId);
+  return r && r.t ? r.t : 0;
 }
 
 function markChecked(productId, error = null) {
@@ -167,6 +183,7 @@ module.exports = {
   close,
   upsertProduct,
   addSnapshot,
+  lastSnapshotTime,
   markChecked,
   getProduct,
   listProducts,

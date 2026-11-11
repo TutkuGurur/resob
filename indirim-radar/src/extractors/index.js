@@ -1,6 +1,7 @@
 'use strict';
 
 const c = require('./common');
+const akakce = require('./akakce');
 
 const stripQuery = (u) => {
   const x = new URL(u);
@@ -136,6 +137,9 @@ const MARKETPLACES = {
     },
   },
 
+  // Fiyat karşılaştırma sitesi: tüm satıcıların fiyatı + 6 aylık fiyat geçmişi
+  akakce,
+
   // JSON-LD / og meta yayınlayan diğer siteler (Pazarama, Teknosa, MediaMarkt, Vatan vb.)
   generic: {
     name: 'Diğer',
@@ -165,7 +169,12 @@ function normalizeUrl(url) {
 
 function extractProduct(html, url) {
   const key = detectMarketplace(url);
-  return { marketplace: key, ...c.finalize(MARKETPLACES[key].extract(html, url)) };
+  const raw = MARKETPLACES[key].extract(html, url);
+  const out = { marketplace: key, ...c.finalize(raw) };
+  if (raw.category) out.category = raw.category;
+  if (raw.offers) out.offers = raw.offers;
+  if (raw.history) out.history = raw.history;
+  return out;
 }
 
 function discoverProductLinks(html, listUrl) {

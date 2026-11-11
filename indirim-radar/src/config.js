@@ -27,6 +27,8 @@ module.exports = {
     minRealDiscountPct: num(process.env.MIN_REAL_DISCOUNT_PCT, 5),
     // Satıcı bu orandan fazla indirim iddia ediyorsa "indirim iddiası var" kabul edilir (%)
     minClaimPct: num(process.env.MIN_CLAIM_PCT, 5),
+    // Bu orandan küçük iddialar, fiyat 30 günlük en düşüğün altına hiç inmemişse yine "sahte" sayılır (%)
+    minorClaimPct: num(process.env.MINOR_CLAIM_PCT, 1),
     // İddia edilen indirim, gerçek indirimden bu kadar puan fazlaysa "abartılı"
     exaggerationGapPct: num(process.env.EXAGGERATION_GAP_PCT, 15),
     // Fiyat seviyesi eşitliği toleransı (kuruş yuvarlamaları vb.)

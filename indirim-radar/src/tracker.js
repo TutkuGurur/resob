@@ -4,6 +4,7 @@ const config = require('./config');
 const db = require('./db');
 const { analyze } = require('./analysis');
 const ex = require('./extractors');
+const akakce = require('./extractors/akakce');
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 const lastHit = new Map(); // host -> zaman; aynı siteye art arda istek atmamak için
@@ -34,7 +35,15 @@ async function checkProduct(product, fetcher = politeFetch) {
     const data = ex.extractProduct(html, product.url);
     if (!data.price) throw new Error('Fiyat sayfada bulunamadı (site yapısı değişmiş veya bot koruması olabilir)');
     db.upsertProduct({ ...product, ...data, url: product.url });
-    db.addSnapshot(product.id, data);
+    const nowT = Date.now();
+    if (data.history && data.history.length) {
+      // Kaynak sitenin geçmiş fiyatlarını (ör. Akakçe 6 aylık tablo) günlük kayıt olarak içe aktar
+      const since = db.lastSnapshotTime(product.id);
+      for (const h of akakce.expandDaily(data.history, nowT - 3600e3)) {
+        if (h.capturedAt > since) db.addSnapshot(product.id, { price: h.price, capturedAt: h.capturedAt, seller: 'geçmiş' });
+      }
+    }
+    db.addSnapshot(product.id, { ...data, capturedAt: nowT });
     db.markChecked(product.id, null);
     return { ok: true, data };
   } catch (err) {
@@ -102,6 +111,14 @@ async function refreshAll({ due = true, log = console.log, fetcher = politeFetch
   return stats;
 }
 
+const safeJson = (s) => {
+  try {
+    return JSON.parse(s);
+  } catch {
+    return null;
+  }
+};
+
 /** Ürün + analiz özetini döner */
 function productSummary(p) {
   const snaps = db.getSnapshots(p.id, Date.now() - 400 * 24 * 3600e3);
@@ -119,6 +136,7 @@ function productSummary(p) {
     lastChecked: p.last_checked,
     lastError: p.last_error,
     analysis: analyze(snaps),
+    offers: p.offers_json ? safeJson(p.offers_json) : null,
   };
 }
 

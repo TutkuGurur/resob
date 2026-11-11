@@ -101,7 +101,7 @@ async function api(req, res, url) {
       if (!validUrl(body.url)) return send(res, 400, { error: 'Geçerli bir sayfa URL\'si girin' });
       const marketplace = ex.detectMarketplace(body.url);
       if (marketplace === 'generic')
-        return send(res, 400, { error: 'Keşif şu an Trendyol, Hepsiburada, Amazon TR, N11 ve Çiçeksepeti için destekleniyor' });
+        return send(res, 400, { error: 'Keşif şu an Akakçe, Trendyol, Hepsiburada, Amazon TR, N11 ve Çiçeksepeti için destekleniyor' });
       const wid = db.addWatchlist({ marketplace, url: body.url, label: body.label, maxProducts: body.maxProducts });
       const w = db.listWatchlists().find((x) => x.id === wid);
       const r = await tracker.runWatchlist(w);

@@ -81,7 +81,7 @@ a{color:var(--accent)}
 <body>
 <header>
   <h1>İndirim Radarı</h1>
-  <p>Trendyol, Hepsiburada, Amazon TR, N11 ve diğerlerinde indirimleri <b>son 30 günün en düşük fiyatına</b> göre doğrular, sahte indirimleri ayırır.</p>
+  <p>Akakçe üzerinden tüm mağazalar ile Trendyol, Hepsiburada, Amazon TR, N11 ve diğerlerinde indirimleri <b>son 30 günün en düşük fiyatına</b> göre doğrular, sahte indirimleri ayırır.</p>
 </header>
 <main>
   <details class="panel" id="addPanel">
@@ -89,14 +89,14 @@ a{color:var(--accent)}
     <div class="forms">
       <form id="addProduct">
         <label for="pUrl"><b>Ürün linki</b></label>
-        <input type="url" id="pUrl" placeholder="https://www.trendyol.com/...-p-123456" required>
+        <input type="url" id="pUrl" placeholder="Trendyol / Hepsiburada / Amazon / N11 / Akakçe ürün linki" required>
         <button class="primary">Takibe al</button>
         <small>Fiyatı hemen çekilir, sonra otomatik olarak düzenli kontrol edilir.</small>
         <div class="msg" id="pMsg"></div>
       </form>
       <form id="addWatch">
         <label for="wUrl"><b>Kampanya / kategori / arama sayfası</b></label>
-        <input type="url" id="wUrl" placeholder="https://www.hepsiburada.com/...  (çok satanlar, fırsatlar vb.)" required>
+        <input type="url" id="wUrl" placeholder="ör. https://www.akakce.com/fiyati-dusen-urunler/" required>
         <input type="text" id="wLabel" placeholder="Etiket (isteğe bağlı) — ör. Kulaklık fırsatları">
         <button class="primary">Keşif listesine ekle</button>
         <small>Sayfadaki ürünler otomatik bulunur ve takibe alınır; sayfa günlük yeniden taranır.</small>
@@ -113,6 +113,7 @@ a{color:var(--accent)}
     <input type="text" id="q" class="grow" placeholder="Ürün ara…">
     <select id="mp">
       <option value="">Tüm siteler</option>
+      <option value="akakce">Akakçe (tüm mağazalar)</option>
       <option value="trendyol">Trendyol</option>
       <option value="hepsiburada">Hepsiburada</option>
       <option value="amazon">Amazon TR</option>
@@ -283,6 +284,8 @@ async function openDetail(id) {
     </div>
     <div class="flags" style="margin-top:8px">${flagsHtml(a)}</div>
     <ul class="reasons">${(a.reasons || []).map(r => `<li>${esc(r)}</li>`).join('')}</ul>
+    ${d.offers && d.offers.length ? `<h3 style="font-size:15px;margin:10px 0 4px">Satıcılar (en ucuzdan)</h3><div class="wl">${d.offers.map(o =>
+      `<div><a href="${esc(o.url)}" target="_blank" rel="noopener noreferrer">${esc(o.seller || o.store)}</a><b>${tl(o.price)}</b></div>`).join('')}</div>` : ''}
     <p class="reason">Güven: ${esc(a.confidence)} · ${a.snapshotCount} fiyat kaydı · Son kontrol: ${ago(d.lastChecked)}</p>
     <div class="bar">
       ${d.isDemo ? '' : `<a href="${esc(d.url)}" target="_blank" rel="noopener noreferrer"><button class="primary">Ürüne git ↗</button></a>

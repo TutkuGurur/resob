@@ -1,6 +1,6 @@
 # İndirim Radarı 🇹🇷
 
-Türkiye'deki pazaryerlerinde (Trendyol, Hepsiburada, Amazon TR, N11, Çiçeksepeti ve JSON-LD yayınlayan diğer siteler)
+Türkiye'deki pazaryerlerinde (Akakçe üzerinden tüm mağazalar; doğrudan Trendyol, Hepsiburada, Amazon TR, N11, Çiçeksepeti ve JSON-LD yayınlayan diğer siteler)
 ürün fiyatlarını düzenli olarak kaydeder. Her indirimi **indirim öncesi son 30 günün en düşük fiyatına** göre doğrular ve
 **gerçek**, **abartılı** ve **sahte** indirimleri birbirinden ayırır.
 
@@ -26,6 +26,31 @@ Ek uyarılar:
 Her ürün için gösterilen bilgiler: güncel fiyat, üstü çizili fiyat, **son 30 günün en düşük / en yüksek / ortalama fiyatı**,
 indirim öncesi referans fiyat, gerçek ve iddia edilen indirim yüzdesi, tasarruf, indirimin kaç gündür sürdüğü,
 tüm zamanların en düşüğü ve fiyat grafiği.
+
+## Akakçe ile anında 6 aylık geçmiş (önerilen)
+
+Akakçe ürün sayfaları hem **tüm mağazaların güncel fiyatlarını** (Trendyol, Hepsiburada, Amazon, N11, A101, idefix …)
+hem de **son 6 ayın günlük en ucuz fiyat tablosunu** içerir. Bir Akakçe ürün linki eklendiğinde bu geçmiş içe aktarılır,
+böylece 30 gün veri toplamayı beklemeden analiz hemen yapılır. Fiyat, tüm satıcılar arasındaki en ucuz fiyattır.
+
+Akakçe'de “gösterilen indirim”, son fiyat değişiminin bir önceki fiyata göre düşüş oranıdır (“fiyatı %X düştü”).
+Bu oran 30 günlük en düşük fiyatla kıyaslanır.
+
+Önerilen keşif sayfaları:
+
+```bash
+npm run kesif -- "https://www.akakce.com/fiyati-dusen-urunler/" "Fiyatı düşenler"
+npm run kesif -- "https://www.akakce.com/sepette-indirimle-en-ucuz/" "Sepette indirim"
+npm run kesif -- "https://www.akakce.com/black-friday-indirimleri/" "Black Friday"
+```
+
+Bilgisayar kurmadan sonuçları görmek için tek dosyalık rapor üretilebilir:
+
+```bash
+npm run rapor-html -- rapor.html   # tarayıcıda açılabilen, paylaşılabilir sayfa
+```
+
+> Cimri.com otomatik isteklere bot koruması (HTTP 403) ile yanıt verdiği için desteklenmiyor.
 
 ## Kurulum
 
@@ -77,6 +102,7 @@ Sunucuyu sürekli açık tutmak istemiyorsanız cron ile tetikleyebilirsiniz:
 | `npm run ekle -- <url...>` | Ürün ekle |
 | `npm run kesif -- <url> [etiket]` | Keşif sayfası ekle |
 | `npm run rapor` | Gerçek indirimleri terminalde listele (`-- --hepsi` ile tümü) |
+| `npm run rapor-html -- <dosya>` | Paylaşılabilir tek dosyalık HTML rapor |
 | `npm run demo` / `node src/cli.js demo-sil` | Demo verisini yükle / sil |
 | `npm test` | Testler |
 
@@ -92,10 +118,11 @@ Sunucuyu sürekli açık tutmak istemiyorsanız cron ile tetikleyebilirsiniz:
 | `WINDOW_DAYS` | 30 | Referans pencere (gün) |
 | `MIN_REAL_DISCOUNT_PCT` | 5 | Gerçek indirim eşiği (%) |
 | `MIN_CLAIM_PCT` | 5 | “İndirim iddiası var” eşiği (%) |
+| `MINOR_CLAIM_PCT` | 1 | Fiyat 30 günlük en düşüğün altına inmediyse bu kadar küçük iddia da “sahte” sayılır |
 | `EXAGGERATION_GAP_PCT` | 15 | Abartılı sayılması için puan farkı |
 | `MIN_COVERAGE_DAYS` | 7 | Karar için gereken en az geçmiş (gün) |
 
-Kurumsal bir proxy arkasındaysanız Node'un proxy desteğini açın: `NODE_USE_ENV_PROXY=1 npm start`.
+Bir proxy arkasındaysanız Node'un proxy desteğini açın: `NODE_USE_ENV_PROXY=1 npm start`.
 
 ## Nasıl hesaplanır?
 

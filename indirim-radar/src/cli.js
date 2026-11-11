@@ -11,6 +11,7 @@ const HELP = `İndirim Radarı — komutlar
   ekle <url> [url...]     Ürün(ler)i takibe al
   kesif <url> [etiket]    Kampanya/kategori/arama sayfasını keşif listesine ekle
   rapor [--hepsi]         Gerçek indirimleri (veya tüm ürünleri) listele
+  rapor-html [dosya]      Tek dosyalık, paylaşılabilir HTML rapor üret
   demo                    Örnek senaryolarla demo verisi yükle
   demo-sil                Demo verisini sil`;
 
@@ -57,6 +58,14 @@ async function main([cmd, ...args]) {
           'İddia %': fmt(x.analysis.claimedDiscountPct),
         }))
       );
+      break;
+    }
+    case 'rapor-html': {
+      const out = args[0] || 'indirim-raporu.html';
+      const { buildData, renderHtml } = require('./report');
+      const items = buildData();
+      require('node:fs').writeFileSync(out, renderHtml({ items }));
+      console.log(`✓ ${items.length} ürün → ${out}`);
       break;
     }
     case 'demo':

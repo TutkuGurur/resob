@@ -148,7 +148,7 @@ function analyze(snapshots, opts = {}) {
       reasons.unshift(
         `Fiyat geçmişi ${historyDays.toFixed(1)} gün; karar vermek için en az ${o.minCoverageDays} gün gerekiyor.`
       );
-    } else if (claims) {
+    } else if (claims || (claimedPct >= o.minorClaimPct && min30 < p - tol)) {
       status = STATUS.SAHTE;
       reasons.unshift(
         `%${claimedPct.toFixed(0)} indirim iddia ediliyor ama ${Math.round(historyDays)} günlük takipte fiyat kayda değer (%${o.minRealDiscountPct}+) düşmemiş.`
@@ -170,7 +170,9 @@ function analyze(snapshots, opts = {}) {
         `İndirim öncesi 30 günün en düşük fiyatı ${tl(refPrice)}; şimdi ${tl(p)} → gerçek indirim %${realPct.toFixed(1)}.`
       );
     }
-  } else if (claims) {
+  } else if (claims || (claimedPct >= o.minorClaimPct && realPct <= o.priceTolerancePct)) {
+    // Büyük bir indirim iddiası gerçek indirimle desteklenmiyorsa, ya da küçük de olsa
+    // "fiyat düştü" denip fiyat 30 günlük en düşüğün altına hiç inmemişse: sahte
     status = STATUS.SAHTE;
     reasons.unshift(
       `%${claimedPct.toFixed(0)} indirim iddia ediliyor ama 30 günlük en düşük fiyata (${tl(refPrice)}) göre ` +
