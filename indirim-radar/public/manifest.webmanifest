@@ -1,0 +1,16 @@
+{
+  "name": "İndirim Radarı",
+  "short_name": "İndirim Radarı",
+  "description": "İndirimleri son 30 günün en düşük fiyatına göre doğrular, sahte indirimleri ayırır.",
+  "lang": "tr",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#f4f6f8",
+  "theme_color": "#2552d9",
+  "icons": [
+    { "src": "/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}

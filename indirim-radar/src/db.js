@@ -34,6 +34,62 @@ CREATE TABLE IF NOT EXISTS price_snapshots (
 );
 CREATE INDEX IF NOT EXISTS idx_snap_product_time ON price_snapshots(product_id, captured_at);
 
+CREATE TABLE IF NOT EXISTS users (
+  id          INTEGER PRIMARY KEY AUTOINCREMENT,
+  email       TEXT NOT NULL UNIQUE,
+  name        TEXT NOT NULL,
+  pass_hash   TEXT NOT NULL,
+  salt        TEXT NOT NULL,
+  is_admin    INTEGER NOT NULL DEFAULT 0,
+  created_at  INTEGER NOT NULL
+);
+CREATE TABLE IF NOT EXISTS sessions (
+  token_hash  TEXT PRIMARY KEY,
+  user_id     INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  expires_at  INTEGER NOT NULL
+);
+-- Kullanıcının kişisel takip listesi
+CREATE TABLE IF NOT EXISTS user_products (
+  user_id     INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  product_id  INTEGER NOT NULL REFERENCES products(id) ON DELETE CASCADE,
+  created_at  INTEGER NOT NULL,
+  PRIMARY KEY (user_id, product_id)
+);
+-- Fiyat alarmları: type = 'fiyat' (hedef fiyatın altı) | 'gercek' (gerçek indirime girince)
+CREATE TABLE IF NOT EXISTS alerts (
+  id            INTEGER PRIMARY KEY AUTOINCREMENT,
+  user_id       INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  product_id    INTEGER NOT NULL REFERENCES products(id) ON DELETE CASCADE,
+  type          TEXT NOT NULL,
+  target_price  REAL,
+  triggered     INTEGER NOT NULL DEFAULT 0,  -- koşul şu an sağlanıyor mu (tekrar tekrar bildirmemek için)
+  last_fired_at INTEGER,
+  created_at    INTEGER NOT NULL
+);
+CREATE INDEX IF NOT EXISTS idx_alerts_product ON alerts(product_id);
+CREATE TABLE IF NOT EXISTS notifications (
+  id          INTEGER PRIMARY KEY AUTOINCREMENT,
+  user_id     INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  product_id  INTEGER REFERENCES products(id) ON DELETE SET NULL,
+  title       TEXT NOT NULL,
+  body        TEXT NOT NULL,
+  created_at  INTEGER NOT NULL,
+  read_at     INTEGER
+);
+CREATE INDEX IF NOT EXISTS idx_notif_user ON notifications(user_id, created_at);
+CREATE TABLE IF NOT EXISTS push_subs (
+  id          INTEGER PRIMARY KEY AUTOINCREMENT,
+  user_id     INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  endpoint    TEXT NOT NULL UNIQUE,
+  p256dh      TEXT NOT NULL,
+  auth        TEXT NOT NULL,
+  created_at  INTEGER NOT NULL
+);
+CREATE TABLE IF NOT EXISTS settings (
+  key    TEXT PRIMARY KEY,
+  value  TEXT NOT NULL
+);
+
 CREATE TABLE IF NOT EXISTS watchlists (
   id             INTEGER PRIMARY KEY AUTOINCREMENT,
   marketplace    TEXT NOT NULL,
@@ -156,6 +212,17 @@ function deleteDemo() {
   open().prepare('DELETE FROM products WHERE is_demo = 1').run();
 }
 
+function getSetting(key) {
+  const r = open().prepare('SELECT value FROM settings WHERE key = ?').get(key);
+  return r ? r.value : null;
+}
+
+function setSetting(key, value) {
+  open()
+    .prepare('INSERT INTO settings (key, value) VALUES (?, ?) ON CONFLICT(key) DO UPDATE SET value = excluded.value')
+    .run(key, String(value));
+}
+
 function addWatchlist(w) {
   const d = open();
   const ex = d.prepare('SELECT id FROM watchlists WHERE url = ?').get(w.url);
@@ -180,6 +247,8 @@ function deleteWatchlist(id) {
 
 module.exports = {
   open,
+  getSetting,
+  setSetting,
   close,
   upsertProduct,
   addSnapshot,

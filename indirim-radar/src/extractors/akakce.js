@@ -56,6 +56,23 @@ function storeFromOffer(o) {
   }
 }
 
+/**
+ * Kategori: Akakçe'nin yolundaki son seviye markalıdır ("Roborock Robot Süpürge"),
+ * bir üstü ürün türüdür ("Robot Süpürge"). Yoksa linkteki ilk bölümden türetilir.
+ */
+function categoryOf(ldCategory, url) {
+  const parts = String(ldCategory || '').split('>').map((x) => x.trim()).filter(Boolean);
+  if (parts.length >= 2) return parts[parts.length - 2];
+  if (parts.length === 1) return parts[0];
+  try {
+    const seg = new URL(url).pathname.split('/').filter(Boolean)[0] || '';
+    if (!seg || /fiyati,/.test(seg)) return null;
+    return seg.split('-').map((w) => w.charAt(0).toLocaleUpperCase('tr-TR') + w.slice(1)).join(' ');
+  } catch {
+    return null;
+  }
+}
+
 function extract(html, url, now = Date.now()) {
   const ldNode = c.findLdProduct(c.extractJsonLd(html)) || {};
   const agg = ldNode.offers || {};
@@ -89,7 +106,7 @@ function extract(html, url, now = Date.now()) {
     title: c.cleanText(ldNode.name) || c.cleanText(c.firstMatch(html, /data-product-name="([^"]+)"/)),
     image: image && typeof image === 'object' ? image.contentUrl || image.url : image || null,
     brand: ldNode.brand && typeof ldNode.brand === 'object' ? ldNode.brand.name : ldNode.brand || null,
-    category: ldNode.category ? String(ldNode.category).split('>').pop().trim() : null,
+    category: categoryOf(ldNode.category, url),
     externalId: ldNode.sku || ldNode.productGroupID || null,
     price,
     listPrice,
@@ -127,6 +144,7 @@ function pickSearchResults(results, max = 1) {
 
 module.exports = {
   parseSearch,
+  categoryOf,
   pickSearchResults,
   name: 'Akakçe',
   match: (h) => /(^|\.)akakce\.com$/.test(h),

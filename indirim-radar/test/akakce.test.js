@@ -15,7 +15,8 @@ test('Akakçe ürün sayfası: satıcılar, en ucuz fiyat, 6 aylık geçmiş', (
   const r = akakce.extract(fx('akakce-urun.html'), URL_, NOW);
   assert.equal(r.title, 'Roborock S8 Pro Akıllı Robot Süpürge');
   assert.equal(r.brand, 'Roborock');
-  assert.equal(r.category, 'Roborock Robot Süpürge');
+  assert.equal(r.category, 'Robot Süpürge');
+  assert.equal(akakce.categoryOf(null, 'https://www.akakce.com/cep-telefonu/en-ucuz-x-fiyati,1.html'), 'Cep Telefonu');
   assert.equal(r.price, 12999);
   assert.equal(r.offers.length, 4);
   assert.equal(r.offers[0].price, 12999);

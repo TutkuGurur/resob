@@ -27,6 +27,47 @@ Her ürün için gösterilen bilgiler: güncel fiyat, üstü çizili fiyat, **so
 indirim öncesi referans fiyat, gerçek ve iddia edilen indirim yüzdesi, tasarruf, indirimin kaç gündür sürdüğü,
 tüm zamanların en düşüğü ve fiyat grafiği.
 
+## Site / telefon uygulaması
+
+`npm start` ile açılan site, giriş korumalı ve telefona kurulabilen bir web uygulamasıdır (PWA):
+
+- **Üyelik:** Yalnızca davet kodunu bilenler kayıt olabilir. Kod sunucu açılırken ekrana yazılır ve Yönetim sayfasında görünür
+  (`INVITE_CODE` ile sabitlenebilir). İlk kayıt olan kişi yöneticidir.
+- **Ürün ara, hemen analiz et:** Ürün adı ya da Akakçe / Trendyol / Hepsiburada / Amazon linki yazılır; ürün Akakçe'de bulunur ve
+  6 aylık geçmişiyle birkaç saniyede analiz edilir.
+- **Listem:** Her üyenin kendi takip listesi. Listedeki ürünler güncellemede önceliklidir.
+- **Alarmlar:** “Fiyat X TL'nin altına inince” ve “gerçek indirime girince”. Koşul sağlandığında bir kez bildirir.
+- **Telefon bildirimi:** Bildirimler sayfasından açılır (Web Push). iPhone'da önce Paylaş → “Ana Ekrana Ekle” gerekir.
+- **Fırsatlar:** Gerçek / sahte / indirimsiz sekmeleri, kategori filtreleri, sıralama.
+- **Yönetim:** Davet kodu, otomatik taranan Akakçe sayfaları, elle güncelleme.
+
+### Yayına alma (Docker)
+
+Telefon bildirimi ve uygulama olarak kurulum **HTTPS** ister; bu yüzden bir alan adı gerekir.
+
+1. Küçük bir sunucu kirala (1 GB bellek yeter) ve Docker kur.
+2. Alan adının A kaydını sunucunun IP adresine yönlendir.
+3. Sunucuda:
+   ```bash
+   git clone https://github.com/TutkuGurur/resob && cd resob/indirim-radar
+   ALAN_ADI=radar.ornek.com YONETICI_EPOSTA=sen@ornek.com docker compose up -d --build
+   docker compose logs radar | grep "Davet kodu"
+   ```
+4. `https://radar.ornek.com` adresini aç, davet koduyla kayıt ol (ilk kayıt yönetici olur).
+
+Veritabanı `radar-data` adlı Docker biriminde tutulur; yedeklemek için `/data/indirim.db` dosyasını kopyalamak yeterlidir.
+Docker dosyaları bu depoda derlenip denenmedi; ilk kurulumda sorun çıkarsa `docker compose logs` çıktısına bakın.
+
+> Akakçe, bazı veri merkezi IP adreslerinden gelen istekleri engelleyebilir. Ürün kartlarında “HTTP 403” görürseniz
+> sunucuyu Türkiye'de bir sağlayıcıya taşımak ya da evdeki bir cihazda çalıştırmak gerekir.
+
+| Ek ayar | Açıklama |
+|---|---|
+| `INVITE_CODE` | Davet kodunu sabitler (yoksa ilk açılışta rastgele üretilir) |
+| `VAPID_SUBJECT` | Bildirim servislerine iletilen iletişim adresi (`mailto:...`) |
+| `TRUST_PROXY` | Ters vekil arkasında gerçek istemci IP'sini kullanır (Docker kurulumunda açık) |
+| `NO_DEFAULT_LISTS` | İlk açılışta Akakçe kampanya sayfalarının otomatik eklenmesini kapatır |
+
 ## Akakçe ile anında 6 aylık geçmiş (önerilen)
 
 Akakçe ürün sayfaları hem **tüm mağazaların güncel fiyatlarını** (Trendyol, Hepsiburada, Amazon, N11, A101, idefix …)
@@ -150,23 +191,29 @@ src/
   analysis.js        gerçek/sahte indirim analizi
   extractors/        site bazlı fiyat çıkarıcılar (JSON-LD + siteye özel kalıplar)
   tracker.js         nazik (rate-limit'li) indirme, kayıt, keşif, zamanlayıcı mantığı
-  server.js          HTTP API + statik panel
+  users.js           üyelik, oturum, kişisel liste, alarm, bildirim kayıtları
+  alerts.js          alarm değerlendirme
+  push.js            Web Push (VAPID + şifreleme), harici paket yok
+  batch.js           ürün bulma (ad/link → Akakçe), toplu rapor
+  server.js          HTTP API + statik site
   cli.js             komut satırı
   demo.js            demo senaryoları
-public/index.html    panel (bağımlılıksız)
+public/              site (index.html, app.js, app.css, sw.js, manifest)
 ```
 
-### API
+### API (hepsi giriş ister)
 
 | Yöntem | Yol | Açıklama |
 |---|---|---|
-| GET | `/api/deals?status=GERCEK_INDIRIM,ABARTILI_INDIRIM&marketplace=trendyol&q=&sort=skor` | Analizli ürün listesi |
-| GET | `/api/products/:id` | Ürün + analiz + tam fiyat geçmişi |
-| POST | `/api/products` `{url}` | Ürün ekle |
-| POST | `/api/products/:id/refresh` | Fiyatı şimdi çek |
-| DELETE | `/api/products/:id` | Takipten çıkar |
-| GET/POST/DELETE | `/api/watchlists` | Keşif sayfaları |
-| POST | `/api/refresh` | Tüm ürünleri arka planda güncelle |
+| POST | `/api/auth/register` · `/login` · `/logout` | Üyelik (kayıt davet kodu ister) |
+| GET | `/api/deals?status=&category=&q=&sort=&mine=1` | Analizli ürün listesi, kategori sayıları |
+| GET | `/api/search?q=<ad veya link>` | Ürünü bul, şimdi çek, analiz et |
+| GET | `/api/products/:id` | Ürün + analiz + fiyat geçmişi + satıcılar |
+| POST/DELETE | `/api/products/:id/follow` | Listeme ekle / çıkar |
+| GET/POST/DELETE | `/api/alerts` | Alarmlar |
+| GET | `/api/notifications` | Bildirim geçmişi |
+| POST | `/api/push/subscribe` · `/unsubscribe` · `/test` | Telefon bildirimi |
+| GET/POST/DELETE | `/api/admin…` | Yönetici: davet kodu, taranan sayfalar, güncelleme |
 
 ## Bilinmesi gerekenler
 

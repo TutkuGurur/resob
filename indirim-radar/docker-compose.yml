@@ -1,0 +1,21 @@
+# Kullanım:  ALAN_ADI=radar.ornek.com docker compose up -d --build
+# Caddy, alan adı için HTTPS sertifikasını kendiliğinden alır (telefon bildirimi ve uygulama kurulumu HTTPS ister).
+services:
+  radar:
+    build: .
+    restart: unless-stopped
+    environment:
+      VAPID_SUBJECT: "mailto:${YONETICI_EPOSTA:-admin@example.com}"
+      REFRESH_HOURS: "6"
+    volumes:
+      - radar-data:/data
+  caddy:
+    image: caddy:2
+    restart: unless-stopped
+    ports: ["80:80", "443:443"]
+    command: caddy reverse-proxy --from ${ALAN_ADI:?ALAN_ADI gerekli} --to radar:3000
+    volumes:
+      - caddy-data:/data
+volumes:
+  radar-data:
+  caddy-data:

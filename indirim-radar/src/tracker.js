@@ -5,6 +5,8 @@ const db = require('./db');
 const { analyze } = require('./analysis');
 const ex = require('./extractors');
 const akakce = require('./extractors/akakce');
+const users = require('./users');
+const alerts = require('./alerts');
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 const lastHit = new Map(); // host -> zaman; aynı siteye art arda istek atmamak için
@@ -45,6 +47,11 @@ async function checkProduct(product, fetcher = politeFetch) {
     }
     db.addSnapshot(product.id, { ...data, capturedAt: nowT });
     db.markChecked(product.id, null);
+    try {
+      await alerts.evaluate(productSummary(db.getProduct(product.id)));
+    } catch (err) {
+      console.error('[alarm]', err);
+    }
     return { ok: true, data };
   } catch (err) {
     db.markChecked(product.id, String(err.message || err));
@@ -97,7 +104,12 @@ async function refreshAll({ due = true, log = console.log, fetcher = politeFetch
       const r = await runWatchlist(w, { fetcher, log });
       stats.discovered += r.added;
     }
-    const products = db.listProducts({ activeOnly: true }).filter((p) => !p.is_demo);
+    // Kullanıcıların takip ettiği ürünler önce güncellenir
+    const followed = users.allFollowedIds();
+    const products = db
+      .listProducts({ activeOnly: true })
+      .filter((p) => !p.is_demo)
+      .sort((a, b) => Number(followed.has(b.id)) - Number(followed.has(a.id)));
     for (const p of products) {
       if (due && p.last_checked && nowT - p.last_checked < config.refreshHours * 3600e3 * 0.9) continue;
       const r = await checkProduct(p, fetcher);
@@ -119,8 +131,32 @@ const safeJson = (s) => {
   }
 };
 
-/** Ürün + analiz özetini döner */
+const summaryCache = new Map(); // id -> { key, value }
+
+/** Ürün + analiz özetini döner (son kontrolden beri değişmediyse önbellekten) */
 function productSummary(p) {
+  const key = `${p.last_checked}|${p.last_error}|${p.active}`;
+  const hit = summaryCache.get(p.id);
+  if (hit && hit.key === key) return hit.value;
+  const value = computeSummary(p);
+  summaryCache.set(p.id, { key, value });
+  return value;
+}
+
+/** Kart grafiği için son 90 günün günlük en düşük fiyatları: [[gün, fiyat], ...] */
+function sparkOf(snaps) {
+  const since = Date.now() - 90 * 864e5;
+  const byDay = new Map();
+  for (const s of snaps) {
+    if (s.capturedAt < since || s.inStock === 0) continue;
+    const d = Math.floor(s.capturedAt / 864e5);
+    const cur = byDay.get(d);
+    if (cur === undefined || s.price < cur) byDay.set(d, s.price);
+  }
+  return [...byDay.entries()].sort((a, b) => a[0] - b[0]);
+}
+
+function computeSummary(p) {
   const snaps = db.getSnapshots(p.id, Date.now() - 400 * 24 * 3600e3);
   return {
     id: p.id,
@@ -136,6 +172,7 @@ function productSummary(p) {
     lastChecked: p.last_checked,
     lastError: p.last_error,
     analysis: analyze(snaps),
+    spark: sparkOf(snaps),
     offers: p.offers_json ? safeJson(p.offers_json) : null,
   };
 }
