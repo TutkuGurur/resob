@@ -100,7 +100,34 @@ function extract(html, url, now = Date.now()) {
   };
 }
 
+/** Akakçe arama sonuç sayfasından ürünler: [{ url, title, sellers }] (satıcı sayısına göre) */
+function parseSearch(html, baseUrl = 'https://www.akakce.com/') {
+  const out = [];
+  const seen = new Set();
+  const re = /<li data-pr="(\d+)"([^>]*)>([\s\S]*?)<\/li>/g;
+  let m;
+  while ((m = re.exec(html))) {
+    const sellers = Number((m[2].match(/data-cp="(\d+)"/) || [])[1] || 0);
+    const href = (m[3].match(/href="([^"]*fiyati,\d+\.html)"/) || [])[1];
+    if (!href) continue;
+    const url = new URL(href, baseUrl).toString();
+    if (seen.has(url)) continue;
+    seen.add(url);
+    const title = c.cleanText((m[3].match(/title="([^"]+)"/) || m[3].match(/alt="([^"]+)"/) || [])[1]);
+    out.push({ url, title, sellers });
+  }
+  return out;
+}
+
+/** Aramadan asıl ürünü seç: Akakçe'nin sıralamasındaki ilk, en az 3 satıcılı sonuç */
+function pickSearchResults(results, max = 1) {
+  const main = results.filter((r) => r.sellers >= 3);
+  return (main.length ? main : results).slice(0, max);
+}
+
 module.exports = {
+  parseSearch,
+  pickSearchResults,
   name: 'Akakçe',
   match: (h) => /(^|\.)akakce\.com$/.test(h),
   normalize(u) {

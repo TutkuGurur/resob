@@ -12,6 +12,8 @@ const HELP = `İndirim Radarı — komutlar
   kesif <url> [etiket]    Kampanya/kategori/arama sayfasını keşif listesine ekle
   rapor [--hepsi]         Gerçek indirimleri (veya tüm ürünleri) listele
   rapor-html [dosya]      Tek dosyalık, paylaşılabilir HTML rapor üret
+  bul <ad veya link>      Ürünü Akakçe'de bul (JSON)
+  toplu <takip.json> <html>  Takip listesi + Akakçe kampanyalarını tara, rapor üret
   demo                    Örnek senaryolarla demo verisi yükle
   demo-sil                Demo verisini sil`;
 
@@ -66,6 +68,20 @@ async function main([cmd, ...args]) {
       const items = buildData();
       require('node:fs').writeFileSync(out, renderHtml({ items }));
       console.log(`✓ ${items.length} ürün → ${out}`);
+      break;
+    }
+    case 'bul': {
+      // node src/cli.js bul "<ürün adı veya link>"  -> JSON
+      const { resolveQuery } = require('./batch');
+      console.log(JSON.stringify(await resolveQuery(args.join(' '))));
+      break;
+    }
+    case 'toplu': {
+      // node src/cli.js toplu takip.json cikti.html
+      const { runBatch } = require('./batch');
+      const takip = args[0] ? JSON.parse(require('node:fs').readFileSync(args[0], 'utf8')) : [];
+      const r = await runBatch({ takip, out: args[1] || 'indirim-raporu.html' });
+      console.log(JSON.stringify(r));
       break;
     }
     case 'demo':

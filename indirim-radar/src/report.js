@@ -11,7 +11,7 @@ const tracker = require('./tracker');
 
 const DAY = 864e5;
 
-function buildData({ historyDays = 120 } = {}) {
+function buildData({ historyDays = 120, pinned = new Set() } = {}) {
   const now = Date.now();
   return tracker
     .allSummaries()
@@ -28,6 +28,7 @@ function buildData({ historyDays = 120 } = {}) {
       const a = x.analysis;
       return {
         id: x.id,
+        pin: pinned.has(x.url) || undefined,
         t: x.title,
         mp: x.marketplaceName,
         u: x.url,
@@ -61,8 +62,8 @@ function buildData({ historyDays = 120 } = {}) {
 
 const esc = (s) => String(s).replace(/</g, '\\u003c');
 
-function renderHtml({ items, generatedAt = Date.now(), sources = [] }) {
-  const data = esc(JSON.stringify({ items, generatedAt, sources }));
+function renderHtml({ items, generatedAt = Date.now(), triggerId = process.env.TRIGGER_ID || '' }) {
+  const data = esc(JSON.stringify({ items, generatedAt, triggerId }));
   return `<title>İndirim Radarı</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -137,6 +138,19 @@ ul.reasons{margin:0;padding-left:18px}
 .btn.primary{background:var(--accent);border-color:var(--accent);color:var(--surface)}
 .info{font-size:13px;color:var(--muted);background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:12px 14px;max-width:none}
 .info b{color:var(--ink)}
+.ask{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:14px;display:flex;flex-direction:column;gap:10px}
+.ask h2{font:700 17px var(--display);margin:0}
+.ask form{display:flex;gap:8px;flex-wrap:wrap}
+.ask input{flex:1 1 240px;min-width:0;font:inherit;border:1px solid var(--line);background:var(--bg);color:var(--ink);padding:9px 11px;border-radius:8px}
+.ask .note{font-size:13px;color:var(--muted);margin:0}
+.reqs{display:flex;flex-direction:column}
+.req{display:flex;gap:10px;justify-content:space-between;align-items:baseline;border-top:1px solid var(--line);padding:7px 0;font-size:14px;flex-wrap:wrap}
+.req .q{font-weight:600;overflow-wrap:anywhere;min-width:0}
+.req .s{font-size:12.5px;color:var(--muted);font-weight:400}
+.pill{font-size:11.5px;font-weight:600;padding:2px 8px;border-radius:999px;background:var(--neutral-bg);color:var(--neutral);white-space:nowrap}
+.pill.ok{background:var(--good-bg);color:var(--good)} .pill.err{background:var(--bad-bg);color:var(--bad)} .pill.wait{background:var(--warn-bg);color:var(--warn)}
+.pinmark{color:var(--accent);font-weight:700}
+button:disabled{opacity:.6;cursor:default}
 </style>
 <div class="wrap">
   <header>
@@ -144,6 +158,16 @@ ul.reasons{margin:0;padding-left:18px}
     <p class="sub">Akakçe'de listelenen tüm mağazaların fiyatları, her ürünün <b>indirim öncesi son 30 günün en düşük fiyatına</b> göre değerlendirildi. Sahte ve abartılı indirimler ayrıldı.</p>
     <p class="stamp" id="stamp"></p>
   </header>
+  <section class="ask" aria-labelledby="askTitle">
+    <h2 id="askTitle">İstediğin ürünü ekle</h2>
+    <form id="askForm">
+      <input id="askInput" type="text" maxlength="300" autocomplete="off" placeholder="Ürün adı (ör. Dyson V15 Detect) veya Akakçe / Trendyol / Hepsiburada linki" aria-label="Ürün adı veya linki">
+      <button class="btn primary" type="submit">Takibe al</button>
+      <button class="btn" type="button" id="runNow" hidden>Şimdi güncelle</button>
+    </form>
+    <p class="note" id="askNote">İstekler bir sonraki güncellemede Akakçe'de aranır, 6 aylık fiyat geçmişiyle analiz edilir ve “Takip listem” sekmesine eklenir.</p>
+    <div class="reqs" id="reqs"></div>
+  </section>
   <div class="tabs" id="tabs" role="toolbar" aria-label="Durum filtresi"></div>
   <div class="filters">
     <input id="q" type="search" placeholder="Ürün ara…" aria-label="Ürün ara">
@@ -163,6 +187,7 @@ ul.reasons{margin:0;padding-left:18px}
 const DATA = ${data};
 const DAY = 864e5;
 const TABS = [
+  ['PIN', 'Takip listem'],
   ['GERCEK_INDIRIM,ABARTILI_INDIRIM', 'Gerçek indirimler'],
   ['SAHTE_INDIRIM', 'Sahte indirimler'],
   ['ABARTILI_INDIRIM', 'Abartılı'],
@@ -175,7 +200,7 @@ const FLAGS = {
   son30GundeDahaUcuzdu: ['30 günde daha ucuzdu', ''],
   tarihiDip: ['6 ayın en düşüğü', 'good'],
 };
-const st = { tab: TABS[0][0], q: '', cat: '', sort: 'score', open: null };
+const st = { tab: DATA.items.some(i => i.pin) ? 'PIN' : TABS[1][0], q: '', cat: '', sort: 'score', open: null };
 const $ = (s) => document.querySelector(s);
 const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 const tl = (n) => n == null ? '–' : n.toLocaleString('tr-TR', { maximumFractionDigits: 2 }) + ' TL';
@@ -200,7 +225,7 @@ const flagsHtml = (a) => Object.entries(a.flags || {}).filter(([, v]) => v).map(
 
 function card(it) {
   const a = it.a;
-  return '<button class="card" data-id="' + it.id + '"><div class="top"><div><div class="site">' + esc(it.cat || it.mp) + '</div><div class="title">' + esc(it.t) + '</div></div><span class="badge ' + a.status + '">' + esc(a.label) + '</span></div>'
+  return '<button class="card" data-id="' + it.id + '"><div class="top"><div><div class="site">' + esc(it.cat || it.mp) + '</div><div class="title">' + (it.pin ? '<span class="pinmark" title="Takip listende">★ </span>' : '') + esc(it.t) + '</div></div><span class="badge ' + a.status + '">' + esc(a.label) + '</span></div>'
     + '<div class="prices"><span class="now">' + tl(a.price) + '</span>' + (a.list ? '<span class="strike">' + tl(a.list) + '</span>' : '') + '</div>'
     + spark(it.h)
     + '<div class="kv"><span>30 günün en düşüğü</span><b>' + tl(a.min30) + '</b><span>İndirim öncesi 30 gün en düşük</span><b>' + tl(a.ref) + '</b>'
@@ -248,9 +273,11 @@ function openDetail(id) {
     + '</div><div class="flags">' + flagsHtml(a) + '</div>'
     + '<ul class="reasons">' + (a.reasons || []).map(r => '<li>' + esc(r) + '</li>').join('') + '</ul>'
     + (it.offers.length ? '<div class="offers"><b>Satıcılar (en ucuzdan)</b>' + it.offers.map(o => '<div><a href="' + esc(safeUrl(o[2])) + '" target="_blank" rel="noopener noreferrer">' + esc(o[0]) + '</a><b>' + tl(o[1]) + '</b></div>').join('') + '</div>' : '')
-    + '<div class="btnrow"><a class="btn primary" href="' + esc(safeUrl(it.u)) + '" target="_blank" rel="noopener noreferrer">Akakçe\\'de aç</a><button class="btn" id="close">Kapat</button></div>';
+    + '<div class="btnrow"><a class="btn primary" href="' + esc(safeUrl(it.u)) + '" target="_blank" rel="noopener noreferrer">Akakçe\\'de aç</a>' + (it.pin ? '<button class="btn" id="unpin">Takip listemden çıkar</button>' : '') + '<button class="btn" id="close">Kapat</button></div>';
   el.hidden = false;
   $('#close').onclick = () => { el.hidden = true; st.open = null; };
+  const up = $('#unpin');
+  if (up) up.onclick = () => unpin(it, up);
   el.scrollIntoView({ behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth', block: 'start' });
 }
 
@@ -263,10 +290,12 @@ const SORT = {
 
 function render() {
   const base = DATA.items.filter(i => (!st.cat || i.cat === st.cat) && (!st.q || i.t.toLocaleLowerCase('tr').includes(st.q)));
-  const count = (k) => k ? base.filter(i => k.split(',').includes(i.a.status)).length : base.length;
+  const match = (i, k) => !k || (k === 'PIN' ? i.pin : k.split(',').includes(i.a.status));
+  const count = (k) => base.filter(i => match(i, k)).length;
   $('#tabs').innerHTML = TABS.map(([k, l]) => '<button class="tab" aria-pressed="' + (k === st.tab) + '" data-k="' + k + '">' + l + '<span class="n">' + count(k) + '</span></button>').join('');
-  const items = base.filter(i => !st.tab || st.tab.split(',').includes(i.a.status)).sort(SORT[st.sort]);
-  $('#list').innerHTML = items.length ? items.map(card).join('') : '<div class="empty">Bu filtrede ürün yok.</div>';
+  const items = base.filter(i => match(i, st.tab)).sort(SORT[st.sort]);
+  $('#list').innerHTML = items.length ? items.map(card).join('')
+    : '<div class="empty">' + (st.tab === 'PIN' ? 'Takip listen boş. Yukarıdaki kutuya bir ürün adı veya linki yazarak ekleyebilirsin.' : 'Bu filtrede ürün yok.') + '</div>';
 }
 
 $('#tabs').onclick = (e) => { const b = e.target.closest('.tab'); if (b) { st.tab = b.dataset.k; render(); } };
@@ -275,7 +304,79 @@ $('#q').oninput = (e) => { st.q = e.target.value.trim().toLocaleLowerCase('tr');
 $('#cat').onchange = (e) => { st.cat = e.target.value; render(); };
 $('#sort').onchange = (e) => { st.sort = e.target.value; render(); };
 render();
+
+// ---- İstekler: claude.ai'de açıldığında paylaşımlı veritabanı ----
+let dbRef = null;
+const STATE = { bekliyor: ['Sırada', 'wait'], eklendi: ['Eklendi', 'ok'], bulunamadi: ['Bulunamadı', 'err'], cikarilacak: ['Çıkarılacak', 'wait'], cikarildi: ['Çıkarıldı', ''] };
+function fmtTime(t) { return t ? new Date(t).toLocaleString('tr-TR', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }) : ''; }
+function renderReqs(docs) {
+  const rows = docs.map(d => Object.assign({ id: d.id }, d.data())).sort((a, b) => (b.at || 0) - (a.at || 0)).slice(0, 12);
+  $('#reqs').innerHTML = rows.map(r => {
+    const st = STATE[r.durum] || ['?', ''];
+    return '<div class="req"><div class="q">' + esc(r.etiket || r.q) + (r.sonuc ? '<div class="s">' + esc(r.sonuc) + '</div>' : '') + '</div>'
+      + '<span class="s">' + fmtTime(r.at) + ' <span class="pill ' + st[1] + '">' + st[0] + '</span></span></div>';
+  }).join('');
+}
+function disableAsk() { $('#askForm').querySelectorAll('input,button').forEach(x => { x.disabled = true; }); }
+async function initDb() {
+  if (!window.claude || !window.claude.use) { $('#askNote').textContent = 'Ürün eklemek için bu sayfayı claude.ai üzerinden aç.'; disableAsk(); return; }
+  const db = await window.claude.use('db');
+  if (!db) { $('#askNote').textContent = 'Ürün isteği göndermek için claude.ai hesabınla giriş yapmış olman gerekiyor.'; disableAsk(); return; }
+  dbRef = db;
+  const timer = setTimeout(() => { $('#askNote').textContent = 'İstek listesine şu an ulaşılamıyor; birazdan tekrar dene.'; }, 10000);
+  db.collection('istekler').orderBy('at', 'desc').limit(50).onSnapshot((snap) => {
+    if (!snap.metadata.fromCache) clearTimeout(timer);
+    renderReqs(snap.docs);
+  }, (e) => { clearTimeout(timer); $('#askNote').textContent = 'İstekler okunamadı: ' + (e.message || e.code); });
+}
+$('#askForm').onsubmit = async (e) => {
+  e.preventDefault();
+  const q = $('#askInput').value.trim();
+  if (!q || !dbRef) return;
+  const btn = $('#askForm button[type=submit]');
+  btn.disabled = true;
+  try {
+    await dbRef.collection('istekler').add({ q, at: Date.now(), durum: 'bekliyor' });
+    $('#askInput').value = '';
+    $('#askNote').textContent = '“' + q + '” sıraya alındı. ' + (DATA.triggerId ? '“Şimdi güncelle” ile hemen işletebilir ya da bir sonraki otomatik güncellemeyi bekleyebilirsin.' : 'Bir sonraki güncellemede eklenecek.');
+  } catch (err) {
+    $('#askNote').textContent = 'İstek kaydedilemedi: ' + (err.message || err.code) + '. Tekrar dene.';
+  } finally { btn.disabled = false; }
+};
+async function unpin(it, btn) {
+  if (!dbRef) { btn.textContent = 'Bunun için sayfayı claude.ai üzerinden aç'; return; }
+  btn.disabled = true;
+  try {
+    await dbRef.collection('istekler').add({ q: it.u, etiket: it.t, at: Date.now(), durum: 'cikarilacak', cikar: true });
+    btn.textContent = 'Bir sonraki güncellemede çıkarılacak';
+  } catch (err) { btn.disabled = false; btn.textContent = 'Olmadı: ' + (err.message || err.code); }
+}
+
+// ---- "Şimdi güncelle": zamanlanmış görevi hemen çalıştırır (Claude Code Remote bağlayıcısı) ----
+async function initRunNow() {
+  if (!DATA.triggerId || !window.claude || !window.claude.use) return;
+  const mcp = await window.claude.use('mcp');
+  if (!mcp) return;
+  const b = $('#runNow');
+  b.hidden = false;
+  b.onclick = async () => {
+    b.disabled = true; b.textContent = 'Başlatılıyor…';
+    try {
+      await mcp.callTool('Claude Code Remote', 'fire_trigger', { trigger_id: DATA.triggerId, text: 'Sayfadan "Şimdi güncelle" istendi.' });
+      b.textContent = 'Başladı; sayfa 5-10 dakika içinde yenilenir';
+    } catch (err) {
+      b.disabled = false;
+      b.textContent = 'Şimdi güncelle';
+      $('#askNote').textContent = err && err.code === 'blocked_by_policy'
+        ? 'Bu hesapta güncelleme buradan başlatılamıyor; istek bir sonraki otomatik güncellemede işlenecek.'
+        : 'Güncelleme başlatılamadı (' + ((err && (err.message || err.code)) || 'bilinmeyen hata') + '). İstek yine de sırada.';
+    }
+  };
+}
+initDb();
+initRunNow();
 </script>
+
 `;
 }
 
