@@ -1,0 +1,17 @@
+{
+  "name": "indirim-radar",
+  "version": "0.1.0",
+  "description": "Türkiye pazaryerlerinde gerçek ve sahte indirimleri ayıran fiyat takip sistemi (son 30 günün en düşük fiyatı referanslı)",
+  "private": true,
+  "type": "commonjs",
+  "engines": { "node": ">=22.5" },
+  "scripts": {
+    "start": "node --disable-warning=ExperimentalWarning src/server.js",
+    "guncelle": "node --disable-warning=ExperimentalWarning src/cli.js guncelle",
+    "ekle": "node --disable-warning=ExperimentalWarning src/cli.js ekle",
+    "kesif": "node --disable-warning=ExperimentalWarning src/cli.js kesif",
+    "demo": "node --disable-warning=ExperimentalWarning src/cli.js demo",
+    "rapor": "node --disable-warning=ExperimentalWarning src/cli.js rapor",
+    "test": "node --disable-warning=ExperimentalWarning --test \"test/*.test.js\""
+  }
+}
