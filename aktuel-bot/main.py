@@ -174,10 +174,12 @@ def check() -> int:
             ok = False
             log.error("Instagram HATA: %s", e)
     else:
-        ok = False
-        log.error("IG_ACCESS_TOKEN tanımlı değil.")
+        log.info("Instagram: henüz tanımlı değil (Telegram modu için sorun değil).")
     log.info("Cloudinary: %s", "tanımlı" if Cloudinary.configured() else "TANIMLI DEĞİL")
     from aktuel.publish.telegram import Telegram
+    if not Instagram.configured() and not Telegram.configured():
+        ok = False
+        log.error("Ne Instagram ne Telegram tanımlı.")
     if Telegram.configured():
         try:
             st = State(ROOT / "state" / "posted.json")

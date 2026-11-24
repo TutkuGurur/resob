@@ -30,7 +30,9 @@ class Telegram:
         self.state = state
         self.chat_id = os.environ.get("TELEGRAM_CHAT_ID") or self._saved_chat_id() or self._discover_chat_id()
         if not self.chat_id:
-            raise TelegramError("Sohbet bulunamadı: Telegram'da botuna /start yaz, sonra tekrar çalıştır.")
+            bot = self._call("getMe").get("username")
+            raise TelegramError(f"Sohbet bulunamadı. Bu token @{bot} botuna ait: Telegram'da "
+                                f"@{bot} botuna /start yaz, sonra tekrar çalıştır.")
 
     @classmethod
     def configured(cls) -> bool:
