@@ -11,9 +11,9 @@ on:
         type: choice
         default: deneme
         options:
-          - deneme      # sadece görsel üret, paylaşma
-          - baglanti    # Instagram/Cloudinary anahtarlarını test et
-          - paylas      # gerçekten paylaş
+          - deneme      # sadece görsel üret, paylaşma/gönderme
+          - baglanti    # Instagram/Cloudinary/Telegram bağlantısını test et
+          - paylas      # Instagram'da paylaş ya da (Instagram yoksa) Telegram'a gönder
 
 permissions:
   contents: write  # state/posted.json'u repoya geri yazmak için
@@ -49,6 +49,8 @@ jobs:
           CLOUDINARY_CLOUD_NAME: ${{ secrets.CLOUDINARY_CLOUD_NAME }}
           CLOUDINARY_API_KEY: ${{ secrets.CLOUDINARY_API_KEY }}
           CLOUDINARY_API_SECRET: ${{ secrets.CLOUDINARY_API_SECRET }}
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
         run: |
           MODE="${{ inputs.mode }}"
           if [ "$MODE" = "deneme" ]; then

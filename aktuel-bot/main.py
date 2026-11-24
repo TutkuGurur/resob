@@ -133,6 +133,31 @@ def publish(b: Brochure, m: dict, art: dict, ig, host) -> dict:
     return {"post_ids": post_ids, "story_ids": story_ids}
 
 
+def send_telegram_package(b: Brochure, m: dict, art: dict, tg) -> None:
+    """Elle paylaşım için paketi Telegram'a yollar: gönderi görselleri, açıklama, hikâyeler."""
+    from aktuel.publish.telegram import esc
+    rng = human_range(b.start, b.end)
+    n_post = sum(len(g) for g in art["groups"])
+    tg.text(f"🛒 <b>{esc(m['name'])} – {esc(caption.title_line(b))}</b>\n📅 {esc(rng)}\n\n"
+            f"📌 <b>GÖNDERİ</b>: aşağıdaki {n_post} görseli sırasıyla "
+            f"{'kaydırmalı gönderi' if n_post > 1 else 'gönderi'} olarak paylaş.")
+    for i, (group, cap) in enumerate(zip(art["groups"], art["captions"]), 1):
+        if len(art["groups"]) > 1:
+            tg.text(f"Gönderi {i}/{len(art['groups'])}")
+        tg.photos(group)
+        tg.text("✍️ Açıklama (kopyalamak için dokun):")
+        tg.copyable(cap)
+    tip = f" Hikâyede @{m['ig_username']} etiketlemeyi unutma." if m.get("ig_username") else ""
+    tg.text(f"📱 <b>HİKÂYELER</b>: {len(art['stories'])} görsel, sırayla paylaş.{esc(tip)}")
+    tg.photos(art["stories"])
+
+
+def send_telegram_summary(b: Brochure, m: dict, art: dict, tg) -> None:
+    from aktuel.publish.telegram import esc
+    tg.text(f"✅ Paylaşıldı: <b>{esc(m['name'])} – {esc(caption.title_line(b))}</b> "
+            f"({sum(len(g) for g in art['groups'])} sayfa, {len(art['stories'])} hikâye)")
+
+
 def check() -> int:
     """Anahtarların doğru girildiğini doğrular; hiçbir şey paylaşmaz, anahtarları yazdırmaz."""
     from aktuel.publish.imagehost import Cloudinary
@@ -152,6 +177,19 @@ def check() -> int:
         ok = False
         log.error("IG_ACCESS_TOKEN tanımlı değil.")
     log.info("Cloudinary: %s", "tanımlı" if Cloudinary.configured() else "TANIMLI DEĞİL")
+    from aktuel.publish.telegram import Telegram
+    if Telegram.configured():
+        try:
+            st = State(ROOT / "state" / "posted.json")
+            tg = Telegram(st)
+            log.info("Telegram OK: @%s", tg.whoami().get("username"))
+            tg.text("✅ Aktüel bot bağlantı testi başarılı. Yeni broşürler buraya gelecek.")
+            st.save()
+        except Exception as e:
+            ok = False
+            log.error("Telegram HATA: %s", e)
+    else:
+        log.info("Telegram: TANIMLI DEĞİL")
     return 0 if ok else 1
 
 
@@ -164,7 +202,7 @@ def main(argv=None) -> int:
     ap.add_argument("--limit", type=int, default=cfg.MAX_BROCHURES_PER_RUN)
     ap.add_argument("--mark-seen", action="store_true")
     ap.add_argument("--check", action="store_true",
-                    help="Instagram/Cloudinary bağlantısını test et, paylaşım yapma")
+                    help="Instagram/Cloudinary/Telegram bağlantısını test et, paylaşım yapma")
     ap.add_argument("--out", default=str(ROOT / "out"))
     ap.add_argument("--state", default=str(ROOT / "state" / "posted.json"))
     a = ap.parse_args(argv)
@@ -178,14 +216,24 @@ def main(argv=None) -> int:
     state = State(Path(a.state))
     markets = {k: v for k, v in cfg.MARKETS.items() if not a.market or k in a.market}
 
-    ig = host = None
+    # Modlar: Instagram ayarlıysa otomatik paylaş (+ Telegram özeti);
+    # sadece Telegram ayarlıysa paketi telefona gönder (elle paylaşım);
+    # hiçbiri yoksa ya da --dry-run ise sadece görsel üret.
+    ig = host = tg = None
     if not a.dry_run and not a.mark_seen:
         from aktuel.publish.imagehost import Cloudinary
         from aktuel.publish.instagram import Instagram
+        from aktuel.publish.telegram import Telegram
         if Instagram.configured() and Cloudinary.configured():
             ig, host = Instagram(), Cloudinary()
-        else:
-            log.info("Instagram/Cloudinary ayarlı değil -> sadece görsel üretiliyor (dry-run).")
+        if Telegram.configured():
+            try:
+                tg = Telegram(state)
+            except Exception as e:
+                log.error("Telegram kullanılamıyor: %s", e)
+        if not ig and not tg:
+            log.info("Instagram/Telegram ayarlı değil -> sadece görsel üretiliyor (dry-run).")
+    live = bool(ig or tg)
 
     # 1) adayları topla
     cands: list[tuple[Brochure, dict]] = []
@@ -222,12 +270,20 @@ def main(argv=None) -> int:
             art = prepare(b, m, today, run_dir, handle)
             if is_duplicate(art["hash"], state.recent_hashes()):
                 log.info("  aynı afiş daha önce paylaşılmış, atlandı")
-                state.mark(b.id, market=b.market, title=b.title, hash=art["hash"], skipped="duplicate")
+                if live:
+                    state.mark(b.id, market=b.market, title=b.title, hash=art["hash"],
+                               skipped="duplicate")
                 continue
             info = {"market": b.market, "title": b.title, "hash": art["hash"],
                     "pages": len(b.pages)}
             if ig:
                 info.update(publish(b, m, art, ig, host))
+                state.mark(b.id, **info)
+                if tg:
+                    send_telegram_summary(b, m, art, tg)
+            elif tg:
+                send_telegram_package(b, m, art, tg)
+                info["sent"] = "telegram"
                 state.mark(b.id, **info)
             log.info("  hazır: %s (%d gönderi görseli, %d hikâye)", art["dir"],
                      sum(len(g) for g in art["groups"]), len(art["stories"]))
@@ -236,9 +292,9 @@ def main(argv=None) -> int:
             errors += 1
             log.error("  HATA: %s", e)
         finally:
-            if ig:
-                state.save()  # her broşürden sonra kaydet; yarıda kesilirse tekrar paylaşma
-    if ig:
+            if live:
+                state.save()  # her broşürden sonra kaydet; yarıda kesilirse tekrar gönderme
+    if live:
         state.save()
     log.info("Bitti: %d broşür işlendi, %d hata.", done, errors)
     return 1 if errors and not done else 0

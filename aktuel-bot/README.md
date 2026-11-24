@@ -23,6 +23,17 @@ Instagram gönderisi (1080×1350, kaydırmalı) ve hikâyesi (1080×1920) olarak
 
 GitHub Actions ile günde 6 kez (TR saatiyle 07:17'den 22:17'ye, 3 saatte bir) çalışır.
 
+## Çalışma modları
+
+| Ayarlı olanlar | Bot ne yapar |
+|---|---|
+| Instagram + Cloudinary | Otomatik paylaşır; Telegram da varsa "paylaşıldı" özeti gönderir |
+| Sadece Telegram | Her yeni broşür için paketi telefona yollar: gönderi görselleri, kopyalanabilir açıklama, hikâye görselleri. Sen elle paylaşırsın (hikâyeye tıklanabilir etiket/link de ekleyebilirsin) |
+| Hiçbiri / `--dry-run` | Sadece görsel üretir (Actions → Artifacts) |
+
+Telegram kurulumu: @BotFather'a `/newbot` yaz, token'ı `TELEGRAM_BOT_TOKEN` secret'ı yap,
+botuna Telegram'da `/start` yaz, Actions'tan `baglanti` modunu çalıştır. Test mesajı gelirse tamam.
+
 ## Yerelde deneme
 
 ```bash
@@ -43,6 +54,8 @@ GitHub → repo → Settings → Secrets and variables → Actions:
 | Secret | `CLOUDINARY_CLOUD_NAME` | Cloudinary hesap adı |
 | Secret | `CLOUDINARY_API_KEY` | Cloudinary API key |
 | Secret | `CLOUDINARY_API_SECRET` | Cloudinary API secret |
+| Secret | `TELEGRAM_BOT_TOKEN` | Telegram bot token'ı (@BotFather → /newbot) |
+| Secret | `TELEGRAM_CHAT_ID` | (isteğe bağlı) Boşsa bota son /start yazan sohbet kullanılır |
 | Variable | `IG_HANDLE` | Instagram kullanıcı adı (@ olmadan), görsellere yazılır |
 | Secret | `IG_USER_ID` | (isteğe bağlı) Boşsa anahtardan otomatik bulunur |
 | Variable | `IG_GRAPH_HOST` | (isteğe bağlı) Facebook Login ile kurulduysa `graph.facebook.com` |
