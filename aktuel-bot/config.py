@@ -2,7 +2,7 @@
 
 # Instagram sayfa adı (görsellerin altına ve açıklamaya yazılır).
 # Ortam değişkeni IG_HANDLE varsa o kullanılır.
-IG_HANDLE = "aktuelradari"
+IG_HANDLE = "aktuel.radari"
 
 # Marketler: kaynak, görünen ad, renkler, hashtag'ler.
 # source: "bim" -> bim.com.tr resmi afiş sayfası, "akakce" -> akakce.com/brosurler/<slug>
