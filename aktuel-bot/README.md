@@ -39,12 +39,12 @@ GitHub → repo → Settings → Secrets and variables → Actions:
 
 | Tür | Ad | Ne |
 |---|---|---|
-| Secret | `IG_USER_ID` | Instagram işletme hesabının kullanıcı ID'si |
 | Secret | `IG_ACCESS_TOKEN` | Uzun ömürlü erişim anahtarı (60 gün geçerli) |
 | Secret | `CLOUDINARY_CLOUD_NAME` | Cloudinary hesap adı |
 | Secret | `CLOUDINARY_API_KEY` | Cloudinary API key |
 | Secret | `CLOUDINARY_API_SECRET` | Cloudinary API secret |
 | Variable | `IG_HANDLE` | Instagram kullanıcı adı (@ olmadan), görsellere yazılır |
+| Secret | `IG_USER_ID` | (isteğe bağlı) Boşsa anahtardan otomatik bulunur |
 | Variable | `IG_GRAPH_HOST` | (isteğe bağlı) Facebook Login ile kurulduysa `graph.facebook.com` |
 
 Cloudinary neden? Instagram API görseli dosya olarak almıyor, herkese açık bir URL'den çekiyor.
@@ -52,6 +52,8 @@ Cloudinary'nin ücretsiz planı bu iş için yeterli.
 
 İlk kurulumda birikmiş broşürlerin hepsi birden paylaşılmasın istersen bir kez:
 `python main.py --mark-seen` çalıştırıp `state/posted.json`'u commit'le.
+
+Anahtarları test etmek için: Actions → Aktüel bot → Run workflow → mod: `baglanti`.
 
 Secrets eklenmezse bot paylaşmadan sadece görsel üretir; görseller Actions çalıştırmasının
 "Artifacts" kısmından indirilebilir.

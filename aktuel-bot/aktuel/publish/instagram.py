@@ -3,8 +3,8 @@
 Varsayılan: "Instagram API with Instagram Login" (graph.instagram.com) — Facebook sayfası gerekmez.
 Facebook Login ile kurulduysa IG_GRAPH_HOST=graph.facebook.com yap.
 
-Gerekli ortam değişkenleri: IG_USER_ID, IG_ACCESS_TOKEN
-İsteğe bağlı: IG_GRAPH_HOST (varsayılan graph.instagram.com), IG_API_VERSION (varsayılan v23.0)
+Gerekli ortam değişkeni: IG_ACCESS_TOKEN
+İsteğe bağlı: IG_USER_ID (boşsa anahtardan otomatik bulunur), IG_GRAPH_HOST (varsayılan graph.instagram.com), IG_API_VERSION (varsayılan v23.0)
 """
 from __future__ import annotations
 
@@ -21,15 +21,24 @@ class InstagramError(RuntimeError):
 
 class Instagram:
     def __init__(self):
-        self.user_id = os.environ["IG_USER_ID"]
         self.token = os.environ["IG_ACCESS_TOKEN"]
-        host = os.environ.get("IG_GRAPH_HOST", "graph.instagram.com")
-        ver = os.environ.get("IG_API_VERSION", "v23.0")
+        host = os.environ.get("IG_GRAPH_HOST") or "graph.instagram.com"
+        ver = os.environ.get("IG_API_VERSION") or "v23.0"
         self.base = f"https://{host}/{ver}"
+        self.username = None
+        self.user_id = os.environ.get("IG_USER_ID") or self._resolve_user_id()
 
     @classmethod
     def configured(cls) -> bool:
-        return bool(os.environ.get("IG_USER_ID") and os.environ.get("IG_ACCESS_TOKEN"))
+        return bool(os.environ.get("IG_ACCESS_TOKEN"))
+
+    def _resolve_user_id(self) -> str:
+        me = self._req("GET", "me", fields="user_id,username")
+        self.username = me.get("username")
+        return str(me.get("user_id") or me["id"])
+
+    def whoami(self) -> dict:
+        return self._req("GET", "me", fields="user_id,username,account_type")
 
     # --- düşük seviye -------------------------------------------------------
     def _req(self, method: str, path: str, **params) -> dict:

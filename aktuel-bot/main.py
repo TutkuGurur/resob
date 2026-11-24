@@ -133,6 +133,28 @@ def publish(b: Brochure, m: dict, art: dict, ig, host) -> dict:
     return {"post_ids": post_ids, "story_ids": story_ids}
 
 
+def check() -> int:
+    """Anahtarların doğru girildiğini doğrular; hiçbir şey paylaşmaz, anahtarları yazdırmaz."""
+    from aktuel.publish.imagehost import Cloudinary
+    from aktuel.publish.instagram import Instagram
+    ok = True
+    if Instagram.configured():
+        try:
+            ig = Instagram()
+            me = ig.whoami()
+            log.info("Instagram OK: @%s (hesap türü: %s, id: %s)", me.get("username"),
+                     me.get("account_type"), ig.user_id)
+            log.info("Kalan 24 saatlik paylaşım kotası: %s", ig.quota_left())
+        except Exception as e:
+            ok = False
+            log.error("Instagram HATA: %s", e)
+    else:
+        ok = False
+        log.error("IG_ACCESS_TOKEN tanımlı değil.")
+    log.info("Cloudinary: %s", "tanımlı" if Cloudinary.configured() else "TANIMLI DEĞİL")
+    return 0 if ok else 1
+
+
 # --- ana akış -----------------------------------------------------------------
 def main(argv=None) -> int:
     ap = argparse.ArgumentParser()
@@ -141,10 +163,15 @@ def main(argv=None) -> int:
     ap.add_argument("--today", help="YYYY-AA-GG (test için)")
     ap.add_argument("--limit", type=int, default=cfg.MAX_BROCHURES_PER_RUN)
     ap.add_argument("--mark-seen", action="store_true")
+    ap.add_argument("--check", action="store_true",
+                    help="Instagram/Cloudinary bağlantısını test et, paylaşım yapma")
     ap.add_argument("--out", default=str(ROOT / "out"))
     ap.add_argument("--state", default=str(ROOT / "state" / "posted.json"))
     a = ap.parse_args(argv)
     logging.basicConfig(level=logging.INFO, format="%(message)s")
+
+    if a.check:
+        return check()
 
     today = date.fromisoformat(a.today) if a.today else datetime.now(TR_TZ).date()
     handle = os.environ.get("IG_HANDLE", cfg.IG_HANDLE)
