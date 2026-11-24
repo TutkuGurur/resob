@@ -1,0 +1,45 @@
+{
+ "posted": {
+  "bim:8f71a4d0-04ff-4b4b-8181-ae9dc8c21e82": {
+   "market": "bim",
+   "title": "24 Kasım Salı",
+   "hash": 6679458557196938412,
+   "pages": 3,
+   "sent": "telegram",
+   "at": "2026-11-24T13:57:12+00:00"
+  },
+  "bim:f3adff4c-7ea5-40ba-a940-6505db4066ab": {
+   "market": "bim",
+   "title": "25 Kasım Çarşamba",
+   "hash": 14169717107471325866,
+   "pages": 1,
+   "sent": "telegram",
+   "at": "2026-11-24T13:57:25+00:00"
+  },
+  "akakce:66170": {
+   "market": "sok",
+   "title": "Haftanın Fırsatları",
+   "hash": 13026885013586876562,
+   "pages": 7,
+   "sent": "telegram",
+   "at": "2026-11-24T13:57:53+00:00"
+  },
+  "akakce:66197": {
+   "market": "sok",
+   "title": "Haftanın Fırsatları Broşürü",
+   "hash": 15911088410246965982,
+   "pages": 1,
+   "sent": "telegram",
+   "at": "2026-11-24T13:58:08+00:00"
+  },
+  "bim:5087fb47-e1d9-4ce2-9128-ba95be0fbe79": {
+   "market": "bim",
+   "title": "22 Kasım Pazar",
+   "hash": 14757392921962115620,
+   "pages": 3,
+   "sent": "telegram",
+   "at": "2026-11-24T13:58:23+00:00"
+  }
+ },
+ "telegram_chat_id": 1112270321
+}
