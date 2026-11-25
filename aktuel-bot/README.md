@@ -34,6 +34,17 @@ Kapak + ürün başına bir görsel (kaydırmalı gönderi) ve hikâyeler üreti
 Bölge, ürün grupları ve eşikler `config.py`'deki `COMPARE_*` ayarlarında.
 Elle çalıştırma: `python main.py --compare` (Actions'ta mod: `karsilastirma`).
 
+## Zernio ile paylaşım (önerilen)
+
+Zernio (zernio.com) kendi Meta ve X uygulamalarını kullandığı için Meta geliştirici uygulaması,
+işletme portföyü, Facebook sayfası ya da X geliştirici hesabı gerekmez.
+Tek gereken `ZERNIO_API_KEY` secret'ı; bot bağlı Instagram ve X hesaplarını API'den kendisi bulur.
+
+- Ücret: ilk 2 bağlı hesap ücretsiz (Instagram + X). X API çağrıları X tarifesiyle aynen yansıtılır
+  (post başı ~0,015 $). Instagram ücretsiz.
+- Instagram: kaydırmalı gönderi + her sayfa için hikâye. X: 4'er görsellik zincir.
+- Doğrudan Instagram Graph API ya da X API anahtarları da tanımlıysa onlar önceliklidir.
+
 ## X (Twitter)
 
 X anahtarları tanımlıysa her broşür ve günlük karşılaştırma X'te de paylaşılır:
@@ -74,6 +85,7 @@ GitHub → repo → Settings → Secrets and variables → Actions:
 | Secret | `CLOUDINARY_API_SECRET` | Cloudinary API secret |
 | Secret | `TELEGRAM_BOT_TOKEN` | Telegram bot token'ı (@BotFather → /newbot) |
 | Secret | `TELEGRAM_CHAT_ID` | (isteğe bağlı) Boşsa bota son /start yazan sohbet kullanılır |
+| Secret | `ZERNIO_API_KEY` | Zernio API anahtarı (Instagram + X için tek anahtar, önerilen yol) |
 | Secret | `X_API_KEY`, `X_API_SECRET` | X (Twitter) uygulamasının API Key / Secret'ı |
 | Secret | `X_ACCESS_TOKEN`, `X_ACCESS_SECRET` | X hesabının Access Token / Secret'ı (Read and Write) |
 | Variable | `IG_HANDLE` | Instagram kullanıcı adı (@ olmadan), görsellere yazılır |

@@ -203,6 +203,15 @@ def check() -> int:
         log.info("Instagram: henüz tanımlı değil (Telegram modu için sorun değil).")
     log.info("Cloudinary: %s", "tanımlı" if Cloudinary.configured() else "TANIMLI DEĞİL")
     from aktuel.publish.telegram import Telegram
+    from aktuel.publish.zernio import Zernio
+    if Zernio.configured():
+        try:
+            accs = Zernio().accounts()
+            log.info("Zernio OK: bağlı hesaplar: %s", ", ".join(
+                f"{a.get('platform')}:@{a.get('username') or a.get('displayName') or '?'}" for a in accs) or "yok")
+        except Exception as e:
+            ok = False
+            log.error("Zernio HATA: %s", e)
     from aktuel.publish.x import X
     if X.configured():
         try:
@@ -212,7 +221,7 @@ def check() -> int:
             log.error("X HATA: %s", e)
     else:
         log.info("X: tanımlı değil")
-    if not Instagram.configured() and not Telegram.configured() and not X.configured():
+    if not any(c.configured() for c in (Instagram, Telegram, X, Zernio)):
         ok = False
         log.error("Ne Instagram ne Telegram tanımlı.")
     if Telegram.configured():
@@ -274,6 +283,20 @@ def main(argv=None) -> int:
                 tg = Telegram(state)
             except Exception as e:
                 log.error("Telegram kullanılamıyor: %s", e)
+        from aktuel.publish.zernio import Zernio, ZernioInstagram, ZernioX
+        if Zernio.configured() and (not ig or not xc):
+            try:
+                z = Zernio()
+                ig_acc = z.account_id("instagram", "ZERNIO_INSTAGRAM_ACCOUNT_ID")
+                x_acc = z.account_id("twitter", "ZERNIO_X_ACCOUNT_ID")
+                if not ig and ig_acc:
+                    ig, host = ZernioInstagram(z, ig_acc), z
+                    log.info("Instagram: Zernio üzerinden paylaşılacak.")
+                if not xc and x_acc:
+                    xc = ZernioX(z, x_acc)
+                    log.info("X: Zernio üzerinden paylaşılacak.")
+            except Exception as e:
+                log.error("Zernio kullanılamıyor: %s", e)
         if not ig and not tg and not xc:
             log.info("Instagram/Telegram/X ayarlı değil -> sadece görsel üretiliyor (dry-run).")
     live = bool(ig or tg or xc)
