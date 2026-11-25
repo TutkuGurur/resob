@@ -256,6 +256,9 @@ def main(argv=None) -> int:
                     help="Instagram/Cloudinary/Telegram bağlantısını test et, paylaşım yapma")
     ap.add_argument("--compare", action="store_true",
                     help="günlük 'Aynı ürün, farklı fiyat' paylaşımını yap (broşürler yerine)")
+    ap.add_argument("--auto", action="store_true",
+                    help="saatlik çalıştırma: zamanı gelmiş ve bugün yapılmamış işleri (karşılaştırma, "
+                         "radar, broşürler) sırayla yapar; GitHub'ın atladığı turları telafi eder")
     ap.add_argument("--radar", action="store_true",
                     help="pazaryerlerinde fiyatı gerçekten düşen ürünleri hikâye olarak paylaş")
     ap.add_argument("--reel-only", action="store_true",
@@ -311,6 +314,40 @@ def main(argv=None) -> int:
         if not ig and not tg and not xc:
             log.info("Instagram/Telegram/X ayarlı değil -> sadece görsel üretiliyor (dry-run).")
     live = bool(ig or tg or xc)
+
+    if a.auto:
+        now = datetime.now(TR_TZ)
+        if now.hour < cfg.AUTO_START_HOUR or now.hour >= cfg.AUTO_END_HOUR:
+            log.info("Gece saatleri (%02d:%02d), paylaşım yapılmıyor.", now.hour, now.minute)
+            return 0
+        if not live:
+            log.info("Paylaşım kanalı yok; --auto yalnızca broşür görsellerini üretecek.")
+        else:
+            from aktuel import compare, radar
+            run_dir = Path(a.out) / now.strftime("%Y%m%d-%H%M")
+            if now.hour >= cfg.COMPARE_HOUR and not state.data.get("compare", {}).get(today.isoformat()):
+                log.info("== Fiyat karşılaştırması (bugün henüz yapılmadı)")
+                try:
+                    compare.run(cfg, state, today, run_dir, handle, ig, host, tg, xc=xc)
+                except Exception as e:
+                    log.error("Karşılaştırma HATA: %s", e)
+                state.save()
+            slots_all = state.data.setdefault("radar_slots", {})
+            for d in [d for d in slots_all if d < (today - timedelta(days=7)).isoformat()]:
+                del slots_all[d]
+            slots = slots_all.setdefault(today.isoformat(), [])
+            due = [name for name, hour in cfg.RADAR_SLOTS if now.hour >= hour]
+            slot = due[-1] if due else None
+            if slot and slot not in slots:
+                log.info("== Radar (%s turu)", slot)
+                try:
+                    radar.run(cfg, state, today, run_dir, handle, ig, host, tg)
+                except Exception as e:
+                    log.error("Radar HATA: %s", e)
+                slots.append(slot)
+                state.save()
+        log.info("== Broşür taraması")
+        # aşağıdaki normal broşür akışıyla devam
 
     if a.radar:
         from aktuel import radar

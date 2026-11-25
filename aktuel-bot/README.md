@@ -21,7 +21,10 @@ Instagram gönderisi (1080×1350, kaydırmalı) ve hikâyesi (1080×1920) olarak
    Paylaşmadan önce Instagram'ın 24 saatlik kotası kontrol edilir.
 6. **Kayıt**: Paylaşılanlar `state/posted.json`'a yazılır, aynı broşür iki kez paylaşılmaz.
 
-GitHub Actions ile günde 6 kez (TR saatiyle 07:17'den 22:17'ye, 3 saatte bir) çalışır.
+GitHub Actions ile her saat (dakika 7) uyanır ve zamanı gelmiş, bugün yapılmamış işleri yapar (`--auto`):
+09:00 sonrası fiyat karşılaştırması (günde 1), 12:00 ve 20:00 sonrası radar turları, 07-23 arası broşür
+taraması. GitHub zamanlanmış görevleri bazen atladığı için kaçan iş bir sonraki saatte telafi edilir.
+Saatler `config.py`'de (`AUTO_*`, `COMPARE_HOUR`, `RADAR_SLOTS`).
 
 ## RADAR: pazaryerlerinde gerçek fırsatlar
 

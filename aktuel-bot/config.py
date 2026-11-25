@@ -138,3 +138,12 @@ RADAR_DM_TEXT = ("🎯 İşte radardaki ürünün linki: {name}\n💰 {price} �
 #  "amazon": {"tag": "kodun-21"}                   -> amazon.com.tr/dp/ASIN?tag=kodun-21
 #  "<pazaryeri>": {"template": "https://ag.../?ulp={url_enc}"}  -> ağ (deeplink) formatı
 AFFILIATE = {}
+
+# ---------------------------------------------------------------------------
+# Saatlik otomatik çalıştırma (--auto). GitHub zamanlanmış görevleri bazen atladığı için
+# bot her saat uyanır ve zamanı gelmiş, bugün yapılmamış işleri yapar.
+# ---------------------------------------------------------------------------
+AUTO_START_HOUR = 7          # bu saatten önce paylaşım yok (TR saati)
+AUTO_END_HOUR = 23           # bu saatten sonra paylaşım yok
+COMPARE_HOUR = 9             # fiyat karşılaştırması bu saatten sonra (günde 1)
+RADAR_SLOTS = [("ogle", 12), ("aksam", 20)]   # radar turları ve başlama saatleri
