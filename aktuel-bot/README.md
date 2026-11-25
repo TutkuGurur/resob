@@ -23,6 +23,35 @@ Instagram gönderisi (1080×1350, kaydırmalı) ve hikâyesi (1080×1920) olarak
 
 GitHub Actions ile günde 6 kez (TR saatiyle 07:17'den 22:17'ye, 3 saatte bir) çalışır.
 
+## Günlük fiyat karşılaştırması ("Aynı ürün, farklı fiyat")
+
+Her gün TR 09:41'de `marketfiyati.org.tr` (Ticaret Bakanlığı) verisinden aynı ürünün
+BİM, A101, ŞOK, Migros, CarrefourSA, Hakmar ve Tarım Kredi fiyatları alınır.
+En az 3 markette satılan, aralarında en az %15 ve 10 TL fark olan ürünlerden günde 5 tanesi seçilir
+(her ürün grubundan ve markadan en fazla 1, aynı ürün 14 gün tekrar edilmez).
+Kapak + ürün başına bir görsel (kaydırmalı gönderi) ve hikâyeler üretilir.
+
+Bölge, ürün grupları ve eşikler `config.py`'deki `COMPARE_*` ayarlarında.
+Elle çalıştırma: `python main.py --compare` (Actions'ta mod: `karsilastirma`).
+
+## Zernio ile paylaşım (önerilen)
+
+Zernio (zernio.com) kendi Meta ve X uygulamalarını kullandığı için Meta geliştirici uygulaması,
+işletme portföyü, Facebook sayfası ya da X geliştirici hesabı gerekmez.
+Tek gereken `ZERNIO_API_KEY` secret'ı; bot bağlı Instagram ve X hesaplarını API'den kendisi bulur.
+
+- Ücret: ilk 2 bağlı hesap ücretsiz (Instagram + X). X API çağrıları X tarifesiyle aynen yansıtılır
+  (post başı ~0,015 $). Instagram ücretsiz.
+- Instagram: kaydırmalı gönderi + her sayfa için hikâye. X: 4'er görsellik zincir.
+- Doğrudan Instagram Graph API ya da X API anahtarları da tanımlıysa onlar önceliklidir.
+
+## X (Twitter)
+
+X anahtarları tanımlıysa her broşür ve günlük karşılaştırma X'te de paylaşılır:
+post başına 4 görsel, broşür başına en fazla 2 post (zincir; `X_MAX_POSTS_PER_BROCHURE`).
+X API kullandıkça ücretli; linkli postlar çok daha pahalı olduğu için bot link koymaz.
+X hatası Instagram/Telegram akışını durdurmaz.
+
 ## Çalışma modları
 
 | Ayarlı olanlar | Bot ne yapar |
@@ -56,6 +85,9 @@ GitHub → repo → Settings → Secrets and variables → Actions:
 | Secret | `CLOUDINARY_API_SECRET` | Cloudinary API secret |
 | Secret | `TELEGRAM_BOT_TOKEN` | Telegram bot token'ı (@BotFather → /newbot) |
 | Secret | `TELEGRAM_CHAT_ID` | (isteğe bağlı) Boşsa bota son /start yazan sohbet kullanılır |
+| Secret | `ZERNIO_API_KEY` | Zernio API anahtarı (Instagram + X için tek anahtar, önerilen yol) |
+| Secret | `X_API_KEY`, `X_API_SECRET` | X (Twitter) uygulamasının API Key / Secret'ı |
+| Secret | `X_ACCESS_TOKEN`, `X_ACCESS_SECRET` | X hesabının Access Token / Secret'ı (Read and Write) |
 | Variable | `IG_HANDLE` | Instagram kullanıcı adı (@ olmadan), görsellere yazılır |
 | Secret | `IG_USER_ID` | (isteğe bağlı) Boşsa anahtardan otomatik bulunur |
 | Variable | `IG_GRAPH_HOST` | (isteğe bağlı) Facebook Login ile kurulduysa `graph.facebook.com` |

@@ -75,8 +75,37 @@ CAROUSEL_SIZE = 10
 # içerik (gönderi + hikâye) kabul ediyor; bot paylaşmadan önce kalan kotayı kontrol eder.
 MAX_BROCHURES_PER_RUN = 5
 
+# X (Twitter): bir broşür için en fazla kaç post (her postta 4 görsel; X post başına ücretli).
+X_MAX_POSTS_PER_BROCHURE = 2
+
 # Açıklamada listelenecek öne çıkan ürün sayısı.
 CAPTION_TOP_PRODUCTS = 8
 
 # Affiliate kısmı eklendiğinde açıklamaya düşülecek reklam etiketi.
 AD_DISCLOSURE = ""  # örn. "#reklam #işbirliği"
+
+# ---------------------------------------------------------------------------
+# Günlük "Aynı ürün, farklı fiyat" paylaşımı (kaynak: marketfiyati.org.tr)
+# ---------------------------------------------------------------------------
+COMPARE_DAILY_COUNT = 5            # günde kaç ürün
+COMPARE_MIN_MARKETS = 3            # ürün en az kaç markette satılıyor olmalı
+COMPARE_MIN_SPREAD = 0.15          # en ucuz ile en pahalı arasında en az %15 fark
+COMPARE_MIN_DIFF_TL = 10.0         # ... ve en az 10 TL fark
+COMPARE_MAX_RATIO = 2.5            # en pahalı / en ucuz > 2.5 ise muhtemelen veri hatası, atla
+COMPARE_NO_REPEAT_DAYS = 14        # aynı ürün 14 gün içinde tekrar paylaşılmaz
+COMPARE_PAGES = 3                  # her arama için kaç sayfa (25 ürün/sayfa) taransın
+
+# Fiyatların alınacağı bölge (mağaza fiyatları bölgeye göre değişir).
+COMPARE_AREA_LABEL = "İstanbul / Kadıköy"
+COMPARE_LAT = 40.9909
+COMPARE_LON = 29.0303
+COMPARE_RADIUS_KM = 5
+
+# Taranacak ürün grupları (her gruptan günde en fazla 1 ürün seçilir).
+COMPARE_KEYWORDS = [
+    "süt", "yoğurt", "peynir", "yumurta", "tereyağı", "çay", "kahve", "makarna", "pirinç",
+    "bulgur", "mercimek", "un", "şeker", "ayçiçek yağı", "zeytinyağı", "salça", "kola",
+    "maden suyu", "meyve suyu", "çikolata", "bisküvi", "cips", "deterjan", "yumuşatıcı",
+    "bulaşık", "şampuan", "diş macunu", "tuvalet kağıdı", "kağıt havlu", "bebek bezi",
+    "ıslak mendil", "sabun", "zeytin", "reçel", "bal", "ton balığı", "sucuk", "gofret",
+]
