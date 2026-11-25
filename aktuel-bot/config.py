@@ -6,7 +6,7 @@ IG_HANDLE = "aktuel.radari"
 
 # X (Twitter) kullanıcı adı (@ olmadan). Boşsa X'te paylaşılmaz.
 # Ortam değişkeni X_HANDLE varsa o kullanılır.
-X_HANDLE = ""
+X_HANDLE = "aktuelradari"
 
 # Marketler: kaynak, görünen ad, renkler, hashtag'ler.
 # source: "bim" -> bim.com.tr resmi afiş sayfası, "akakce" -> akakce.com/brosurler/<slug>
