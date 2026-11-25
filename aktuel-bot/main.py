@@ -158,6 +158,32 @@ def send_telegram_summary(b: Brochure, m: dict, art: dict, tg) -> None:
             f"({sum(len(g) for g in art['groups'])} sayfa, {len(art['stories'])} hikâye)")
 
 
+def x_text(b: Brochure, m: dict, today: date) -> str:
+    from aktuel.publish.x import fit
+    lines = [f"🛒 {m['name']} – {caption.title_line(b)}"]
+    rng = human_range(b.start, b.end)
+    if rng:
+        lines.append(f"📅 {rng}")
+    w = caption.when_text(b, today)
+    if w:
+        lines.append(f"⏰ {w}")
+    prods = b.products[:5]
+    if prods:
+        lines.append("")
+        for p in prods:
+            name = p.name if len(p.name) <= 42 else p.name[:40].rstrip() + "…"
+            lines.append(f"• {name}" + (f" – {p.price} TL" if p.price else ""))
+    tags = " ".join("#" + t for t in (m["tags"][:2] + ["aktüel", "indirim"]))
+    return fit(lines, tags)
+
+
+def post_x(b: Brochure, m: dict, art: dict, xc, today: date) -> list[str]:
+    images = [p for g in art["groups"] for p in g]
+    ids = xc.thread(x_text(b, m, today), images, cfg.X_MAX_POSTS_PER_BROCHURE, "👇 Diğer sayfalar")
+    log.info("  X'te paylaşıldı: %d post", len(ids))
+    return ids
+
+
 def check() -> int:
     """Anahtarların doğru girildiğini doğrular; hiçbir şey paylaşmaz, anahtarları yazdırmaz."""
     from aktuel.publish.imagehost import Cloudinary
@@ -177,7 +203,16 @@ def check() -> int:
         log.info("Instagram: henüz tanımlı değil (Telegram modu için sorun değil).")
     log.info("Cloudinary: %s", "tanımlı" if Cloudinary.configured() else "TANIMLI DEĞİL")
     from aktuel.publish.telegram import Telegram
-    if not Instagram.configured() and not Telegram.configured():
+    from aktuel.publish.x import X
+    if X.configured():
+        try:
+            log.info("X OK: @%s", X().whoami().get("username"))
+        except Exception as e:
+            ok = False
+            log.error("X HATA: %s", e)
+    else:
+        log.info("X: tanımlı değil")
+    if not Instagram.configured() and not Telegram.configured() and not X.configured():
         ok = False
         log.error("Ne Instagram ne Telegram tanımlı.")
     if Telegram.configured():
@@ -224,8 +259,11 @@ def main(argv=None) -> int:
     # Modlar: Instagram ayarlıysa otomatik paylaş (+ Telegram özeti);
     # sadece Telegram ayarlıysa paketi telefona gönder (elle paylaşım);
     # hiçbiri yoksa ya da --dry-run ise sadece görsel üret.
-    ig = host = tg = None
+    ig = host = tg = xc = None
     if not a.dry_run and not a.mark_seen:
+        from aktuel.publish.x import X
+        if X.configured():
+            xc = X()
         from aktuel.publish.imagehost import Cloudinary
         from aktuel.publish.instagram import Instagram
         from aktuel.publish.telegram import Telegram
@@ -236,15 +274,15 @@ def main(argv=None) -> int:
                 tg = Telegram(state)
             except Exception as e:
                 log.error("Telegram kullanılamıyor: %s", e)
-        if not ig and not tg:
-            log.info("Instagram/Telegram ayarlı değil -> sadece görsel üretiliyor (dry-run).")
-    live = bool(ig or tg)
+        if not ig and not tg and not xc:
+            log.info("Instagram/Telegram/X ayarlı değil -> sadece görsel üretiliyor (dry-run).")
+    live = bool(ig or tg or xc)
 
     if a.compare:
         from aktuel import compare
         run_dir = Path(a.out) / datetime.now(TR_TZ).strftime("%Y%m%d-%H%M")
         try:
-            rc = compare.run(cfg, state, today, run_dir, handle, ig, host, tg, force=a.force)
+            rc = compare.run(cfg, state, today, run_dir, handle, ig, host, tg, force=a.force, xc=xc)
         finally:
             if live:
                 state.save()
@@ -293,12 +331,17 @@ def main(argv=None) -> int:
                     "pages": len(b.pages)}
             if ig:
                 info.update(publish(b, m, art, ig, host))
-                state.mark(b.id, **info)
                 if tg:
                     send_telegram_summary(b, m, art, tg)
             elif tg:
                 send_telegram_package(b, m, art, tg)
                 info["sent"] = "telegram"
+            if xc:
+                try:
+                    info["x_ids"] = post_x(b, m, art, xc, today)
+                except Exception as e:  # X hatası diğer kanalları durdurmasın
+                    log.error("  X HATA: %s", e)
+            if live:
                 state.mark(b.id, **info)
             log.info("  hazır: %s (%d gönderi görseli, %d hikâye)", art["dir"],
                      sum(len(g) for g in art["groups"]), len(art["stories"]))

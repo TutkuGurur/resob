@@ -79,8 +79,19 @@ def _img(url: str | None) -> Image.Image | None:
         return None
 
 
+def x_text(products, today: date) -> str:
+    from .publish.x import fit
+    lines = [f"🛒 Aynı ürün, farklı fiyat ({today.day} {date_tr(today).split()[1]})",
+             "Bugün en ucuz nerede?", ""]
+    for i, p in enumerate(products, 1):
+        best = p.sorted_offers[0]
+        name = p.title if len(p.title) <= 20 else p.title[:18].rstrip() + "…"
+        lines.append(f"{i}. {name}: {market_name(best.market)} {tl(best.price)}")
+    return fit(lines, "#marketfiyatları #indirim")
+
+
 def run(cfg, state, today: date, out_dir: Path, handle: str, ig=None, host=None, tg=None,
-        force: bool = False) -> int:
+        force: bool = False, xc=None) -> int:
     done = state.data.setdefault("compare", {})
     if done.get(today.isoformat()) and not force:
         log.info("[Karşılaştırma] bugün zaten paylaşıldı, atlanıyor.")
@@ -114,7 +125,13 @@ def run(cfg, state, today: date, out_dir: Path, handle: str, ig=None, host=None,
     (cdir / "caption_1.txt").write_text(cap, encoding="utf-8")
     log.info("  hazır: %s (%d gönderi görseli, %d hikâye)", cdir, len(posts), len(stories))
 
-    live = bool(ig or tg)
+    live = bool(ig or tg or xc)
+    if xc:
+        try:
+            ids = xc.thread(x_text(picked, today), posts, 2, "👇 Diğer ürünler")
+            log.info("  X'te paylaşıldı: %d post", len(ids))
+        except Exception as e:
+            log.error("  X HATA: %s", e)
     if ig:
         def up(p: Path) -> str:
             return host.upload(p, f"{cdir.name}_{p.stem}")

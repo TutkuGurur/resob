@@ -75,6 +75,9 @@ CAROUSEL_SIZE = 10
 # içerik (gönderi + hikâye) kabul ediyor; bot paylaşmadan önce kalan kotayı kontrol eder.
 MAX_BROCHURES_PER_RUN = 5
 
+# X (Twitter): bir broşür için en fazla kaç post (her postta 4 görsel; X post başına ücretli).
+X_MAX_POSTS_PER_BROCHURE = 2
+
 # Açıklamada listelenecek öne çıkan ürün sayısı.
 CAPTION_TOP_PRODUCTS = 8
 

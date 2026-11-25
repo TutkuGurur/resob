@@ -34,6 +34,13 @@ Kapak + ürün başına bir görsel (kaydırmalı gönderi) ve hikâyeler üreti
 Bölge, ürün grupları ve eşikler `config.py`'deki `COMPARE_*` ayarlarında.
 Elle çalıştırma: `python main.py --compare` (Actions'ta mod: `karsilastirma`).
 
+## X (Twitter)
+
+X anahtarları tanımlıysa her broşür ve günlük karşılaştırma X'te de paylaşılır:
+post başına 4 görsel, broşür başına en fazla 2 post (zincir; `X_MAX_POSTS_PER_BROCHURE`).
+X API kullandıkça ücretli; linkli postlar çok daha pahalı olduğu için bot link koymaz.
+X hatası Instagram/Telegram akışını durdurmaz.
+
 ## Çalışma modları
 
 | Ayarlı olanlar | Bot ne yapar |
@@ -67,6 +74,8 @@ GitHub → repo → Settings → Secrets and variables → Actions:
 | Secret | `CLOUDINARY_API_SECRET` | Cloudinary API secret |
 | Secret | `TELEGRAM_BOT_TOKEN` | Telegram bot token'ı (@BotFather → /newbot) |
 | Secret | `TELEGRAM_CHAT_ID` | (isteğe bağlı) Boşsa bota son /start yazan sohbet kullanılır |
+| Secret | `X_API_KEY`, `X_API_SECRET` | X (Twitter) uygulamasının API Key / Secret'ı |
+| Secret | `X_ACCESS_TOKEN`, `X_ACCESS_SECRET` | X hesabının Access Token / Secret'ı (Read and Write) |
 | Variable | `IG_HANDLE` | Instagram kullanıcı adı (@ olmadan), görsellere yazılır |
 | Secret | `IG_USER_ID` | (isteğe bağlı) Boşsa anahtardan otomatik bulunur |
 | Variable | `IG_GRAPH_HOST` | (isteğe bağlı) Facebook Login ile kurulduysa `graph.facebook.com` |
