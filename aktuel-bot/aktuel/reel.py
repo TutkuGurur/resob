@@ -37,9 +37,22 @@ def _outro(handle: str) -> Image.Image:
     return c
 
 
+def _ffmpeg() -> str | None:
+    """Sistemdeki ffmpeg; yoksa imageio-ffmpeg paketinin getirdiği hazır ffmpeg."""
+    exe = shutil.which("ffmpeg")
+    if exe:
+        return exe
+    try:
+        import imageio_ffmpeg
+        return imageio_ffmpeg.get_ffmpeg_exe()
+    except Exception:
+        return None
+
+
 def build(products, imgs, today: date, area: str, handle: str, out: Path,
           music: Path | None = None) -> Path | None:
-    if not shutil.which("ffmpeg"):
+    ffmpeg = _ffmpeg()
+    if not ffmpeg:
         log.warning("  ffmpeg yok, Reels üretilemedi.")
         return None
     fdir = out.parent / (out.stem + "_frames")
@@ -69,7 +82,7 @@ def build(products, imgs, today: date, area: str, handle: str, out: Path,
     lst.write_text("\n".join(lines) + "\n", encoding="utf-8")
     total = sum(sec for _, sec in frames)
 
-    cmd = ["ffmpeg", "-y", "-loglevel", "error", "-f", "concat", "-safe", "0", "-i", str(lst)]
+    cmd = [ffmpeg, "-y", "-loglevel", "error", "-f", "concat", "-safe", "0", "-i", str(lst)]
     if music and music.exists():
         cmd += ["-stream_loop", "-1", "-i", str(music)]
     else:  # sessiz ses kanalı: bazı platformlar ses kanalı olmayan videoyu sorunlu işliyor
