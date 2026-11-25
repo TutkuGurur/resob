@@ -256,6 +256,8 @@ def main(argv=None) -> int:
                     help="Instagram/Cloudinary/Telegram bağlantısını test et, paylaşım yapma")
     ap.add_argument("--compare", action="store_true",
                     help="günlük 'Aynı ürün, farklı fiyat' paylaşımını yap (broşürler yerine)")
+    ap.add_argument("--reel-only", action="store_true",
+                    help="bugünkü karşılaştırmanın sadece Reels videosunu paylaş")
     ap.add_argument("--force", action="store_true", help="karşılaştırmayı bugün yapılmış olsa da tekrar yap")
     ap.add_argument("--out", default=str(ROOT / "out"))
     ap.add_argument("--state", default=str(ROOT / "state" / "posted.json"))
@@ -307,6 +309,15 @@ def main(argv=None) -> int:
         if not ig and not tg and not xc:
             log.info("Instagram/Telegram/X ayarlı değil -> sadece görsel üretiliyor (dry-run).")
     live = bool(ig or tg or xc)
+
+    if a.reel_only:
+        from aktuel import compare
+        run_dir = Path(a.out) / datetime.now(TR_TZ).strftime("%Y%m%d-%H%M")
+        try:
+            return compare.run_reel_only(cfg, state, today, run_dir, handle, ig, host, tg)
+        finally:
+            if live:
+                state.save()
 
     if a.compare:
         from aktuel import compare

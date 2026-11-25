@@ -90,6 +90,49 @@ def x_text(products, today: date) -> str:
     return fit(lines, "#marketfiyatları #indirim")
 
 
+def run_reel_only(cfg, state, today: date, out_dir: Path, handle: str, ig=None, host=None,
+                  tg=None) -> int:
+    """Bugün paylaşılmış karşılaştırmanın aynı ürünleriyle yalnızca Reels üretip paylaşır
+    (gönderi, hikâye ve X tekrar edilmez)."""
+    done = state.data.setdefault("compare", {})
+    ids = done.get(today.isoformat())
+    if not ids:
+        log.warning("[Reels] bugün paylaşılmış karşılaştırma yok; önce karşılaştırmayı çalıştır.")
+        return 1
+    reels_done = state.data.setdefault("compare_reels", {})
+    if reels_done.get(today.isoformat()):
+        log.info("[Reels] bugünün Reels'i zaten paylaşıldı.")
+        return 0
+    products = marketfiyati.collect(cfg.COMPARE_KEYWORDS, cfg.COMPARE_LAT, cfg.COMPARE_LON,
+                                    cfg.COMPARE_RADIUS_KM, pages=cfg.COMPARE_PAGES)
+    picked = [products[i] for i in ids if i in products]
+    if len(picked) < 3:
+        log.warning("[Reels] bugünün ürünleri bulunamadı (%d).", len(picked))
+        return 1
+    from . import reel
+    imgs = [_img(p.image_url) for p in picked]
+    cdir = out_dir / f"reels_{today.isoformat()}"
+    cdir.mkdir(parents=True, exist_ok=True)
+    music = Path(__file__).resolve().parent.parent / cfg.REEL_MUSIC if cfg.REEL_MUSIC else None
+    path = reel.build(picked, imgs, today, cfg.COMPARE_AREA_LABEL, handle, cdir / "reel.mp4", music)
+    if not path:
+        return 1
+    cap = build_caption(picked, today, cfg)
+    if ig and hasattr(ig, "post_reel"):
+        ig.post_reel(host.upload(path, f"{cdir.name}_reel"), cap)
+        log.info("  Reels paylaşıldı")
+        if tg:
+            tg.text("✅ Paylaşıldı: <b>Aynı ürün, farklı fiyat</b> (Reels)")
+    elif tg:
+        tg.text("🎬 <b>REELS</b>: aşağıdaki videoyu Reels olarak paylaş.")
+        tg.video(path)
+        tg.copyable(cap)
+    else:
+        return 0
+    reels_done[today.isoformat()] = True
+    return 0
+
+
 def run(cfg, state, today: date, out_dir: Path, handle: str, ig=None, host=None, tg=None,
         force: bool = False, xc=None) -> int:
     done = state.data.setdefault("compare", {})
@@ -153,6 +196,7 @@ def run(cfg, state, today: date, out_dir: Path, handle: str, ig=None, host=None,
             try:
                 ig.post_reel(up(reel_path), cap)
                 log.info("  Reels paylaşıldı")
+                state.data.setdefault("compare_reels", {})[today.isoformat()] = True
             except Exception as e:
                 log.error("  Reels HATA: %s", e)
         if tg:

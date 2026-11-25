@@ -17,6 +17,7 @@ on:
           - baglanti    # Instagram/Cloudinary/Telegram bağlantısını test et
           - paylas      # Instagram'da paylaş ya da (Instagram yoksa) Telegram'a gönder
           - karsilastirma  # günlük 5 ürün fiyat karşılaştırmasını şimdi yap
+          - reels          # bugünkü karşılaştırmanın sadece Reels videosunu paylaş
 
 permissions:
   contents: write  # state/posted.json'u repoya geri yazmak için
@@ -64,6 +65,8 @@ jobs:
           MODE="${{ inputs.mode }}"
           if [ "${{ github.event.schedule }}" = "41 6 * * *" ] || [ "$MODE" = "karsilastirma" ]; then
             python main.py --compare
+          elif [ "$MODE" = "reels" ]; then
+            python main.py --reel-only
           elif [ "$MODE" = "deneme" ]; then
             python main.py --dry-run
           elif [ "$MODE" = "baglanti" ]; then
