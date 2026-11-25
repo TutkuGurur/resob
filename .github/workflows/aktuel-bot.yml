@@ -4,6 +4,8 @@ on:
   schedule:
     # Türkiye saatiyle 07:17, 10:17, 13:17, 16:17, 19:17, 22:17 (UTC+3)
     - cron: "17 4,7,10,13,16,19 * * *"
+    # Her gün TR 09:41: "Aynı ürün, farklı fiyat" (5 ürün fiyat karşılaştırması)
+    - cron: "41 6 * * *"
   workflow_dispatch:
     inputs:
       mode:
@@ -14,6 +16,7 @@ on:
           - deneme      # sadece görsel üret, paylaşma/gönderme
           - baglanti    # Instagram/Cloudinary/Telegram bağlantısını test et
           - paylas      # Instagram'da paylaş ya da (Instagram yoksa) Telegram'a gönder
+          - karsilastirma  # günlük 5 ürün fiyat karşılaştırmasını şimdi yap
 
 permissions:
   contents: write  # state/posted.json'u repoya geri yazmak için
@@ -53,7 +56,9 @@ jobs:
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
         run: |
           MODE="${{ inputs.mode }}"
-          if [ "$MODE" = "deneme" ]; then
+          if [ "${{ github.event.schedule }}" = "41 6 * * *" ] || [ "$MODE" = "karsilastirma" ]; then
+            python main.py --compare
+          elif [ "$MODE" = "deneme" ]; then
             python main.py --dry-run
           elif [ "$MODE" = "baglanti" ]; then
             python main.py --check

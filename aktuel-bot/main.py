@@ -205,6 +205,9 @@ def main(argv=None) -> int:
     ap.add_argument("--mark-seen", action="store_true")
     ap.add_argument("--check", action="store_true",
                     help="Instagram/Cloudinary/Telegram bağlantısını test et, paylaşım yapma")
+    ap.add_argument("--compare", action="store_true",
+                    help="günlük 'Aynı ürün, farklı fiyat' paylaşımını yap (broşürler yerine)")
+    ap.add_argument("--force", action="store_true", help="karşılaştırmayı bugün yapılmış olsa da tekrar yap")
     ap.add_argument("--out", default=str(ROOT / "out"))
     ap.add_argument("--state", default=str(ROOT / "state" / "posted.json"))
     a = ap.parse_args(argv)
@@ -236,6 +239,16 @@ def main(argv=None) -> int:
         if not ig and not tg:
             log.info("Instagram/Telegram ayarlı değil -> sadece görsel üretiliyor (dry-run).")
     live = bool(ig or tg)
+
+    if a.compare:
+        from aktuel import compare
+        run_dir = Path(a.out) / datetime.now(TR_TZ).strftime("%Y%m%d-%H%M")
+        try:
+            rc = compare.run(cfg, state, today, run_dir, handle, ig, host, tg, force=a.force)
+        finally:
+            if live:
+                state.save()
+        return rc
 
     # 1) adayları topla
     cands: list[tuple[Brochure, dict]] = []

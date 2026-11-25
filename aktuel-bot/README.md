@@ -23,6 +23,17 @@ Instagram gönderisi (1080×1350, kaydırmalı) ve hikâyesi (1080×1920) olarak
 
 GitHub Actions ile günde 6 kez (TR saatiyle 07:17'den 22:17'ye, 3 saatte bir) çalışır.
 
+## Günlük fiyat karşılaştırması ("Aynı ürün, farklı fiyat")
+
+Her gün TR 09:41'de `marketfiyati.org.tr` (Ticaret Bakanlığı) verisinden aynı ürünün
+BİM, A101, ŞOK, Migros, CarrefourSA, Hakmar ve Tarım Kredi fiyatları alınır.
+En az 3 markette satılan, aralarında en az %15 ve 10 TL fark olan ürünlerden günde 5 tanesi seçilir
+(her ürün grubundan ve markadan en fazla 1, aynı ürün 14 gün tekrar edilmez).
+Kapak + ürün başına bir görsel (kaydırmalı gönderi) ve hikâyeler üretilir.
+
+Bölge, ürün grupları ve eşikler `config.py`'deki `COMPARE_*` ayarlarında.
+Elle çalıştırma: `python main.py --compare` (Actions'ta mod: `karsilastirma`).
+
 ## Çalışma modları
 
 | Ayarlı olanlar | Bot ne yapar |
