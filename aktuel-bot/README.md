@@ -23,6 +23,20 @@ Instagram gönderisi (1080×1350, kaydırmalı) ve hikâyesi (1080×1920) olarak
 
 GitHub Actions ile günde 6 kez (TR saatiyle 07:17'den 22:17'ye, 3 saatte bir) çalışır.
 
+## RADAR: pazaryerlerinde gerçek fırsatlar
+
+Günde 2 kez (TR 12:53 ve 20:23) akakce.com "fiyatı düşen ürünler" taranır. Akakçe'nin fiyat geçmişi
+notu "son 1 ay içinde daha düşük fiyat gördü" diyorsa düşüş sahte sayılıp elenir (önce zam, sonra
+"indirim"). Kalanlar için Trendyol, Hepsiburada, Amazon ve N11'deki en ucuz teklif ve gerçek ürün linki
+bulunur; her ürün bir hikâye olarak paylaşılır.
+
+Instagram API hikâyeye link çıkartması koyamadığı için her hikâyeye Zernio'da bir "hikâyeye
+cevap → DM" otomasyonu kurulur: hikâyeye RADAR (ya da "link") yazana ürünün linki DM'den gider.
+Ertesi gün süresi dolan hikâyelerin otomasyonları silinir. Telegram'a linkli özet gelir.
+
+Affiliate onaylanınca `config.AFFILIATE` doldurulur, linkler otomatik dönüştürülür.
+Elle çalıştırma: Actions → mod `radar` (yerelde `python main.py --radar --dry-run`).
+
 ## Günlük fiyat karşılaştırması ("Aynı ürün, farklı fiyat")
 
 Her gün TR 09:41'de `marketfiyati.org.tr` (Ticaret Bakanlığı) verisinden aynı ürünün

@@ -256,6 +256,8 @@ def main(argv=None) -> int:
                     help="Instagram/Cloudinary/Telegram bağlantısını test et, paylaşım yapma")
     ap.add_argument("--compare", action="store_true",
                     help="günlük 'Aynı ürün, farklı fiyat' paylaşımını yap (broşürler yerine)")
+    ap.add_argument("--radar", action="store_true",
+                    help="pazaryerlerinde fiyatı gerçekten düşen ürünleri hikâye olarak paylaş")
     ap.add_argument("--reel-only", action="store_true",
                     help="bugünkü karşılaştırmanın sadece Reels videosunu paylaş")
     ap.add_argument("--force", action="store_true", help="karşılaştırmayı bugün yapılmış olsa da tekrar yap")
@@ -309,6 +311,15 @@ def main(argv=None) -> int:
         if not ig and not tg and not xc:
             log.info("Instagram/Telegram/X ayarlı değil -> sadece görsel üretiliyor (dry-run).")
     live = bool(ig or tg or xc)
+
+    if a.radar:
+        from aktuel import radar
+        run_dir = Path(a.out) / datetime.now(TR_TZ).strftime("%Y%m%d-%H%M")
+        try:
+            return radar.run(cfg, state, today, run_dir, handle, ig, host, tg)
+        finally:
+            if live:
+                state.save()
 
     if a.reel_only:
         from aktuel import compare

@@ -79,6 +79,43 @@ class Zernio:
         log.warning("Zernio'da @%s adlı %s hesabı bulunamadı; bu platformda paylaşılmayacak.", want, platform)
         return None
 
+    def profile_id(self, account_id: str) -> str | None:
+        for a in self.accounts():
+            if (a.get("_id") or a.get("id")) == account_id:
+                p = a.get("profileId") or a.get("profile")
+                return (p.get("_id") or p.get("id")) if isinstance(p, dict) else p
+        return None
+
+    def wait_platform_post_id(self, post_id: str, timeout: int = 120) -> str | None:
+        """Yayınlanan içeriğin Instagram medya kimliğini (platformPostId) bekler."""
+        t0 = time.time()
+        while time.time() - t0 < timeout:
+            post = self._req("GET", f"posts/{post_id}")
+            post = post.get("post") or post
+            for p in post.get("platforms", []):
+                if p.get("platformPostId"):
+                    return str(p["platformPostId"])
+                if p.get("status") == "failed":
+                    raise ZernioError(f"paylaşım başarısız: {p.get('errorMessage')}")
+            time.sleep(5)
+        return None
+
+    # --- hikâyeye cevap -> DM otomasyonu --------------------------------------
+    def create_story_dm(self, account_id: str, story_media_id: str, name: str, keywords: list[str],
+                        text: str, button_title: str, url: str) -> str:
+        body = {
+            "profileId": self.profile_id(account_id), "accountId": account_id,
+            "name": name[:100], "trigger": "story_reply", "platformPostId": story_media_id,
+            "keywords": keywords, "matchMode": "contains", "dmMessage": text,
+            "buttons": [{"type": "url", "title": button_title[:20], "url": url}],
+        }
+        res = self._req("POST", "comment-automations", json=body)
+        a = res.get("automation") or res.get("data") or res
+        return a.get("_id") or a.get("id") or ""
+
+    def delete_automation(self, automation_id: str) -> None:
+        self._req("DELETE", f"comment-automations/{automation_id}")
+
     # --- medya ---------------------------------------------------------------
     def upload(self, path: Path, public_id: str = "") -> str:
         """Dosyayı Zernio'ya yükler, herkese açık URL'sini döndürür."""
