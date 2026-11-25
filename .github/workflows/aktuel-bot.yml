@@ -6,6 +6,9 @@ on:
     - cron: "17 4,7,10,13,16,19 * * *"
     # Her gün TR 09:41: "Aynı ürün, farklı fiyat" (5 ürün fiyat karşılaştırması)
     - cron: "41 6 * * *"
+    # RADAR: TR 12:53 ve 20:23 (pazaryerlerinde fiyatı gerçekten düşen ürünler)
+    - cron: "53 9 * * *"
+    - cron: "23 17 * * *"
   workflow_dispatch:
     inputs:
       mode:
@@ -18,6 +21,7 @@ on:
           - paylas      # Instagram'da paylaş ya da (Instagram yoksa) Telegram'a gönder
           - karsilastirma  # günlük 5 ürün fiyat karşılaştırmasını şimdi yap
           - reels          # bugünkü karşılaştırmanın sadece Reels videosunu paylaş
+          - radar          # pazaryeri radarını şimdi çalıştır
 
 permissions:
   contents: write  # state/posted.json'u repoya geri yazmak için
@@ -63,7 +67,10 @@ jobs:
           X_ACCESS_SECRET: ${{ secrets.X_ACCESS_SECRET }}
         run: |
           MODE="${{ inputs.mode }}"
-          if [ "${{ github.event.schedule }}" = "41 6 * * *" ] || [ "$MODE" = "karsilastirma" ]; then
+          SCHED="${{ github.event.schedule }}"
+          if [ "$SCHED" = "53 9 * * *" ] || [ "$SCHED" = "23 17 * * *" ] || [ "$MODE" = "radar" ]; then
+            python main.py --radar
+          elif [ "$SCHED" = "41 6 * * *" ] || [ "$MODE" = "karsilastirma" ]; then
             python main.py --compare
           elif [ "$MODE" = "reels" ]; then
             python main.py --reel-only

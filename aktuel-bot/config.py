@@ -119,3 +119,22 @@ COMPARE_KEYWORDS = [
     "bulaşık", "şampuan", "diş macunu", "tuvalet kağıdı", "kağıt havlu", "bebek bezi",
     "ıslak mendil", "sabun", "zeytin", "reçel", "bal", "ton balığı", "sucuk", "gofret",
 ]
+
+# ---------------------------------------------------------------------------
+# RADAR: pazaryerlerinde fiyatı gerçekten düşen ürünler (kaynak: akakce.com)
+# ---------------------------------------------------------------------------
+RADAR_PER_RUN = 3                   # bir çalıştırmada kaç ürün (günde 2 çalıştırma = 6 ürün)
+RADAR_MIN_DROP = 8                  # Akakçe listesinde en az %8 düşüş
+RADAR_SCAN_PAGES = 8                # "fiyatı düşen ürünler" kaç sayfa taransın (32 ürün/sayfa)
+RADAR_MAX_INSPECT = 60              # en fazla kaç ürün sayfası incelensin
+RADAR_NO_REPEAT_DAYS = 7            # aynı ürün 7 gün tekrar paylaşılmaz
+RADAR_MARKETPLACES = ["Trendyol", "Hepsiburada", "Amazon", "N11"]
+RADAR_KEYWORD = "RADAR"             # hikâyeye bu kelimeyi yazana link DM'den gider
+RADAR_DM_KEYWORDS = ["radar", "link", "lınk", "linki"]
+RADAR_DM_TEXT = ("🎯 İşte radardaki ürünün linki: {name}\n💰 {price} – {marketplace}\n"
+                 "Fiyatlar anlık değişebilir, kaçırmadan bak! 👇")
+
+# Affiliate: onay gelince doldur. Bot ürün linkini buna göre dönüştürür.
+#  "amazon": {"tag": "kodun-21"}                   -> amazon.com.tr/dp/ASIN?tag=kodun-21
+#  "<pazaryeri>": {"template": "https://ag.../?ulp={url_enc}"}  -> ağ (deeplink) formatı
+AFFILIATE = {}
