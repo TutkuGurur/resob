@@ -114,6 +114,90 @@
    "sent": "zernio",
    "note": "run 45606831459 (kayıt elle eklendi)",
    "at": "2026-11-25T11:47:54+00:00"
+  },
+  "akakce:66282": {
+   "market": "a101",
+   "title": "İndirimli Ürünler",
+   "hash": 8190645607139814670,
+   "pages": 1,
+   "post_ids": [
+    "6b06ee504a203fa51859034e"
+   ],
+   "story_ids": [
+    "6b06ee5cc7e8f65ce11bad2e"
+   ],
+   "x_ids": [
+    "6b06ee65519baed789946b0b"
+   ],
+   "at": "2026-11-25T14:19:21+00:00"
+  },
+  "akakce:66076": {
+   "market": "a101",
+   "title": "Aldın Aldın",
+   "hash": 9079161100369548870,
+   "pages": 1,
+   "post_ids": [
+    "6b06ee6c9c0d3c0a86dab32c"
+   ],
+   "story_ids": [
+    "6b06ee75519baed789946b44"
+   ],
+   "x_ids": [
+    "6b06ee7f4a203fa5185903f0"
+   ],
+   "at": "2026-11-25T14:19:45+00:00"
+  },
+  "akakce:66079": {
+   "market": "a101",
+   "title": "Fırsat İndirim Broşürü",
+   "hash": 7214355683339947121,
+   "pages": 1,
+   "post_ids": [
+    "6b06ee84519baed789946b88"
+   ],
+   "story_ids": [
+    "6b06ee8c9c0d3c0a86dab3cd"
+   ],
+   "x_ids": [
+    "6b06ee934a203fa51859046a"
+   ],
+   "at": "2026-11-25T14:20:06+00:00"
+  },
+  "bim:d2aaa6bd-335d-4259-8ef1-e6dd394c19fb": {
+   "market": "bim",
+   "title": "20 Kasım Cuma",
+   "hash": 2039031852442491550,
+   "pages": 4,
+   "post_ids": [
+    "6b06ee9f4a203fa51859048a"
+   ],
+   "story_ids": [
+    "6b06eed8c7e8f65ce11baed0",
+    "6b06eedfbd0f52e365ffec14",
+    "6b06eee74a203fa518590562",
+    "6b06eef166875e4a4f05f8f0"
+   ],
+   "x_ids": [
+    "6b06eefd66875e4a4f05f91a"
+   ],
+   "at": "2026-11-25T14:21:55+00:00"
+  },
+  "bim:2599de21-30ce-4fbb-a0ac-53e5f1cec607": {
+   "market": "bim",
+   "title": "20 Kasım-20 Aralık",
+   "hash": 12080031256458087628,
+   "pages": 2,
+   "post_ids": [
+    "6b06ef0ba838ef61160b6822"
+   ],
+   "story_ids": [
+    "6b06ef20c8982eb857deeeed",
+    "6b06ef2ba838ef61160b68c5"
+   ],
+   "x_ids": [
+    "6b06ef35a838ef61160b68e0"
+   ],
+   "at": "2026-11-25T14:22:48+00:00"
   }
  },
  "telegram_chat_id": 1112270321,
@@ -125,5 +209,8 @@
    "20FP",
    "1ZD6"
   ]
+ },
+ "compare_reels": {
+  "2026-11-25": true
  }
 }
