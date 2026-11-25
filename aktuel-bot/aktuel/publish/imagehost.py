@@ -30,7 +30,8 @@ class Cloudinary:
         params["signature"] = hashlib.sha1(to_sign.encode()).hexdigest()
         params["api_key"] = self.key
         with open(path, "rb") as fh:
-            r = requests.post(f"https://api.cloudinary.com/v1_1/{self.cloud}/image/upload",
+            kind = "video" if path.suffix.lower() == ".mp4" else "image"
+            r = requests.post(f"https://api.cloudinary.com/v1_1/{self.cloud}/{kind}/upload",
                               data=params, files={"file": fh}, timeout=120)
         r.raise_for_status()
         return r.json()["secure_url"]

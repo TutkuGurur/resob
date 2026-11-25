@@ -89,7 +89,9 @@ def _product_card(canvas, img: Image.Image | None, box):
 
 
 def render_product(product, img, idx: int, total: int, today: date, area: str, handle: str,
-                   size=POST_SIZE) -> Image.Image:
+                   size=POST_SIZE, reveal: int | None = None) -> Image.Image:
+    """reveal: Reels animasyonu için görünen satır sayısı (pahalıdan ucuza doğru açılır).
+    None = hepsi görünür; en ucuz satır vurgusu ve 'Fark' yalnızca hepsi görününce çizilir."""
     W, H = size
     story = H > 1500
     c = _gradient(size)
@@ -120,12 +122,18 @@ def render_product(product, img, idx: int, total: int, today: date, area: str, h
     avail = H - footer_h - y
     row_h = max(64, min(130 if story else 96, avail // max(1, len(offers))))
     cheapest, priciest = offers[0].price, offers[-1].price
+    n_show = len(offers) if reveal is None else max(0, min(reveal, len(offers)))
+    all_shown = n_show == len(offers)
+    first_visible = len(offers) - n_show
     f_name = _font("Bold", int(row_h * 0.36))
     f_price = _font("ExtraBold", int(row_h * 0.44))
     for i, o in enumerate(offers):
         name, bg, fg = MARKET_STYLE.get(o.market, (o.market, "#666666", "#FFFFFF"))
         ry0, ry1 = y, y + row_h - 12
-        is_best = o.price == cheapest
+        if i < first_visible:
+            y += row_h
+            continue
+        is_best = o.price == cheapest and all_shown
         row_fill = (22, 101, 52) if is_best else (255, 255, 255)
         if is_best:
             d.rounded_rectangle((60, ry0, W - 60, ry1), 20, fill=row_fill)
@@ -145,7 +153,7 @@ def render_product(product, img, idx: int, total: int, today: date, area: str, h
 
     # alt bilgi
     fy = H - footer_h + (20 if not story else 40)
-    if len(offers) > 1:
+    if len(offers) > 1 and all_shown:
         msg = f"Fark: {tl(product.diff)}  ·  %{round(product.spread * 100)}"
         d.text((W / 2, fy + 10), msg, font=_font("ExtraBold", 40), fill=ACCENT, anchor="mm")
     d.text((W / 2, fy + 62), f"{date_tr(today)} · {area} · Kaynak: marketfiyati.org.tr",
@@ -155,7 +163,8 @@ def render_product(product, img, idx: int, total: int, today: date, area: str, h
     return c
 
 
-def render_cover(products, imgs, today: date, area: str, handle: str, size=POST_SIZE) -> Image.Image:
+def render_cover(products, imgs, today: date, area: str, handle: str, size=POST_SIZE,
+                 cta: str = "Kaydır →  Tüm market fiyatları") -> Image.Image:
     W, H = size
     story = H > 1500
     c = _gradient(size)
@@ -186,7 +195,7 @@ def render_cover(products, imgs, today: date, area: str, handle: str, size=POST_
         d.text((tx, y + 70), f"En ucuz: {market_name(best.market)} {tl(best.price)}",
                font=_font("SemiBold", 28), fill=(22, 101, 52))
         y += row_h
-    d.text((W / 2, H - (300 if story else 70)), "Kaydır →  Tüm market fiyatları", font=_font("Bold", 34),
+    d.text((W / 2, H - (300 if story else 70)), cta, font=_font("Bold", 34),
            fill=WHITE, anchor="mm")
     if handle:
         d.text((W / 2, H - (250 if story else 28)), f"@{handle} · Kaynak: marketfiyati.org.tr",

@@ -103,6 +103,11 @@ class Telegram:
                 for fh in files.values():
                     fh.close()
 
+    def video(self, path: Path, caption: str = "") -> None:
+        with open(path, "rb") as fh:
+            self._call("sendVideo", {"chat_id": self.chat_id, "caption": caption[:1000],
+                                     "supports_streaming": "true"}, {"video": fh})
+
     def copyable(self, text: str) -> None:
         """Dokununca/kopyala butonuyla tek seferde kopyalanabilen blok."""
         self.text(f"<pre>{html.escape(text)}</pre>")

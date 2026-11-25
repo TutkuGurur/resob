@@ -123,6 +123,14 @@ def run(cfg, state, today: date, out_dir: Path, handle: str, ig=None, host=None,
                                         .convert("RGB"), cdir / f"story_{i:02d}.jpg"))
     cap = build_caption(picked, today, cfg)
     (cdir / "caption_1.txt").write_text(cap, encoding="utf-8")
+    reel_path = None
+    if getattr(cfg, "COMPARE_REEL", False):
+        from . import reel
+        try:
+            music = Path(__file__).resolve().parent.parent / cfg.REEL_MUSIC if cfg.REEL_MUSIC else None
+            reel_path = reel.build(picked, imgs, today, area, handle, cdir / "reel.mp4", music)
+        except Exception as e:
+            log.error("  Reels üretilemedi: %s", e)
     log.info("  hazır: %s (%d gönderi görseli, %d hikâye)", cdir, len(posts), len(stories))
 
     live = bool(ig or tg or xc)
@@ -141,6 +149,12 @@ def run(cfg, state, today: date, out_dir: Path, handle: str, ig=None, host=None,
         ig.post_images([up(p) for p in posts], cap)
         for s in stories:
             ig.post_story(up(s))
+        if reel_path and hasattr(ig, "post_reel"):
+            try:
+                ig.post_reel(up(reel_path), cap)
+                log.info("  Reels paylaşıldı")
+            except Exception as e:
+                log.error("  Reels HATA: %s", e)
         if tg:
             tg.text(f"✅ Paylaşıldı: <b>Aynı ürün, farklı fiyat</b> ({n} ürün)")
     elif tg:
@@ -151,6 +165,9 @@ def run(cfg, state, today: date, out_dir: Path, handle: str, ig=None, host=None,
         tg.copyable(cap)
         tg.text(f"📱 <b>HİKÂYELER</b>: {len(stories)} görsel, sırayla paylaş.")
         tg.photos(stories)
+        if reel_path:
+            tg.text("🎬 <b>REELS</b>: aşağıdaki videoyu Reels olarak paylaş (açıklama yukarıdaki ile aynı).")
+            tg.video(reel_path)
     if live:
         done[today.isoformat()] = [p.id for p in picked]
         # eski kayıtları temizle
