@@ -91,4 +91,10 @@ jobs:
           git add state/posted.json 2>/dev/null || exit 0
           git diff --cached --quiet && exit 0
           git commit -m "aktuel-bot: paylaşım kaydı güncellendi"
-          git push
+          # Bu arada dala başka commit geldiyse önce onları al, sonra gönder (kayıt kaybolmasın).
+          for i in 1 2 3 4 5; do
+            git push && exit 0
+            git pull --rebase -X theirs origin "${GITHUB_REF_NAME}" || git rebase --abort
+            sleep $((i * 3))
+          done
+          exit 1
