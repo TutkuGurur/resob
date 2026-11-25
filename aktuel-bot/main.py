@@ -206,9 +206,14 @@ def check() -> int:
     from aktuel.publish.zernio import Zernio
     if Zernio.configured():
         try:
-            accs = Zernio().accounts()
+            z = Zernio()
+            accs = z.accounts()
             log.info("Zernio OK: bağlı hesaplar: %s", ", ".join(
                 f"{a.get('platform')}:@{a.get('username') or a.get('displayName') or '?'}" for a in accs) or "yok")
+            h = os.environ.get("IG_HANDLE") or cfg.IG_HANDLE
+            xh = os.environ.get("X_HANDLE") or cfg.X_HANDLE
+            log.info("→ Instagram paylaşımı: %s", f"@{h}" if z.account_id("instagram", "ZERNIO_INSTAGRAM_ACCOUNT_ID", h) else "YOK (eşleşen hesap yok)")
+            log.info("→ X paylaşımı: %s", f"@{xh}" if z.account_id("twitter", "ZERNIO_X_ACCOUNT_ID", xh) else "YOK (X_HANDLE ayarlı değil ya da eşleşmiyor)")
         except Exception as e:
             ok = False
             log.error("Zernio HATA: %s", e)
@@ -261,7 +266,7 @@ def main(argv=None) -> int:
         return check()
 
     today = date.fromisoformat(a.today) if a.today else datetime.now(TR_TZ).date()
-    handle = os.environ.get("IG_HANDLE", cfg.IG_HANDLE)
+    handle = os.environ.get("IG_HANDLE") or cfg.IG_HANDLE
     state = State(Path(a.state))
     markets = {k: v for k, v in cfg.MARKETS.items() if not a.market or k in a.market}
 
@@ -287,14 +292,16 @@ def main(argv=None) -> int:
         if Zernio.configured() and (not ig or not xc):
             try:
                 z = Zernio()
-                ig_acc = z.account_id("instagram", "ZERNIO_INSTAGRAM_ACCOUNT_ID")
-                x_acc = z.account_id("twitter", "ZERNIO_X_ACCOUNT_ID")
+                ig_acc = z.account_id("instagram", "ZERNIO_INSTAGRAM_ACCOUNT_ID", handle)
+                x_acc = z.account_id("twitter", "ZERNIO_X_ACCOUNT_ID",
+                                     os.environ.get("X_HANDLE") or cfg.X_HANDLE)
                 if not ig and ig_acc:
                     ig, host = ZernioInstagram(z, ig_acc), z
-                    log.info("Instagram: Zernio üzerinden paylaşılacak.")
+                    log.info("Instagram: Zernio üzerinden @%s hesabına paylaşılacak.", handle)
                 if not xc and x_acc:
                     xc = ZernioX(z, x_acc)
-                    log.info("X: Zernio üzerinden paylaşılacak.")
+                    log.info("X: Zernio üzerinden @%s hesabına paylaşılacak.",
+                             os.environ.get("X_HANDLE") or cfg.X_HANDLE)
             except Exception as e:
                 log.error("Zernio kullanılamıyor: %s", e)
         if not ig and not tg and not xc:

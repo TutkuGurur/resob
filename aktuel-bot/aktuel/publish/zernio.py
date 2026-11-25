@@ -5,7 +5,9 @@ işletme portföyüne ya da X geliştirici hesabına gerek kalmaz. Hesaplar Zern
 bağlanır; bot hesapları API'den kendisi bulur.
 
 Gerekli: ZERNIO_API_KEY
-İsteğe bağlı: ZERNIO_INSTAGRAM_ACCOUNT_ID, ZERNIO_X_ACCOUNT_ID (yoksa ilk bağlı hesap kullanılır)
+Hesap seçimi: Instagram için IG_HANDLE (config.IG_HANDLE), X için X_HANDLE (config.X_HANDLE)
+kullanıcı adıyla eşleşen hesap kullanılır; eşleşme yoksa o platformda paylaşılmaz.
+İsteğe bağlı: ZERNIO_INSTAGRAM_ACCOUNT_ID, ZERNIO_X_ACCOUNT_ID ile ID doğrudan verilebilir.
 
 Ücret: ilk 2 bağlı hesap ücretsiz (ör. Instagram + X). X API çağrıları X'in tarifesiyle
 aynen yansıtılır (post başı ~0,015 $, linkli post ~0,20 $); bot link koymaz.
@@ -60,12 +62,21 @@ class Zernio:
             self._accounts = body if isinstance(body, list) else (body.get("accounts") or body.get("data") or [])
         return self._accounts
 
-    def account_id(self, platform: str, env_name: str) -> str | None:
+    def account_id(self, platform: str, env_name: str, username: str | None) -> str | None:
+        """Paylaşılacak hesabın Zernio ID'si. Yanlış hesaba paylaşmamak için kullanıcı adı
+        eşleşmesi şart: Zernio'da aynı platformdan birden çok hesap bağlı olabilir."""
         if os.environ.get(env_name):
             return os.environ[env_name]
+        want = (username or "").lstrip("@").strip().lower()
+        if not want:
+            return None
         for a in self.accounts():
-            if a.get("platform") == platform and a.get("isActive", True) is not False:
+            if a.get("platform") != platform or a.get("isActive", True) is False:
+                continue
+            names = {str(a.get(k) or "").lstrip("@").lower() for k in ("username", "handle", "displayName")}
+            if want in names:
                 return a.get("_id") or a.get("id")
+        log.warning("Zernio'da @%s adlı %s hesabı bulunamadı; bu platformda paylaşılmayacak.", want, platform)
         return None
 
     # --- medya ---------------------------------------------------------------
