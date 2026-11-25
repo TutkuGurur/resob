@@ -1,0 +1,85 @@
+{
+ "posted": {
+  "bim:8f71a4d0-04ff-4b4b-8181-ae9dc8c21e82": {
+   "market": "bim",
+   "title": "24 Kasım Salı",
+   "hash": 6679458557196938412,
+   "pages": 3,
+   "sent": "telegram",
+   "at": "2026-11-24T13:57:12+00:00"
+  },
+  "bim:f3adff4c-7ea5-40ba-a940-6505db4066ab": {
+   "market": "bim",
+   "title": "25 Kasım Çarşamba",
+   "hash": 14169717107471325866,
+   "pages": 1,
+   "sent": "telegram",
+   "at": "2026-11-24T13:57:25+00:00"
+  },
+  "akakce:66170": {
+   "market": "sok",
+   "title": "Haftanın Fırsatları",
+   "hash": 13026885013586876562,
+   "pages": 7,
+   "sent": "telegram",
+   "at": "2026-11-24T13:57:53+00:00"
+  },
+  "akakce:66197": {
+   "market": "sok",
+   "title": "Haftanın Fırsatları Broşürü",
+   "hash": 15911088410246965982,
+   "pages": 1,
+   "sent": "telegram",
+   "at": "2026-11-24T13:58:08+00:00"
+  },
+  "bim:5087fb47-e1d9-4ce2-9128-ba95be0fbe79": {
+   "market": "bim",
+   "title": "22 Kasım Pazar",
+   "hash": 14757392921962115620,
+   "pages": 3,
+   "sent": "telegram",
+   "at": "2026-11-24T13:58:23+00:00"
+  },
+  "akakce:66062": {
+   "market": "a101",
+   "title": "Aldın Aldın",
+   "hash": 9047343105402907686,
+   "pages": 11,
+   "sent": "telegram",
+   "at": "2026-11-24T23:00:48+00:00"
+  },
+  "akakce:66231": {
+   "market": "carrefoursa",
+   "title": "Manav İndirim Broşürü",
+   "hash": 1773178568069093830,
+   "pages": 3,
+   "sent": "telegram",
+   "at": "2026-11-24T23:01:05+00:00"
+  },
+  "bim:fb59c2e2-95cd-4402-9cc1-5d0b1cf14ad8": {
+   "market": "bim",
+   "title": "27 Kasım Cuma",
+   "hash": 14757395103368268450,
+   "pages": 4,
+   "sent": "telegram",
+   "at": "2026-11-24T23:01:20+00:00"
+  },
+  "akakce:66192": {
+   "market": "sok",
+   "title": "Hafta Sonu Fırsatları",
+   "hash": 11142935982239672360,
+   "pages": 4,
+   "sent": "telegram",
+   "at": "2026-11-24T23:01:39+00:00"
+  },
+  "bim:d9bcaf4f-766e-4615-b359-9cd32c80ebc0": {
+   "market": "bim",
+   "title": "21-27 Kasım",
+   "hash": 7508109889549085611,
+   "pages": 2,
+   "sent": "telegram",
+   "at": "2026-11-24T23:02:04+00:00"
+  }
+ },
+ "telegram_chat_id": 1112270321
+}
