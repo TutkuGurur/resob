@@ -2,13 +2,10 @@ name: Aktüel bot
 
 on:
   schedule:
-    # Türkiye saatiyle 07:17, 10:17, 13:17, 16:17, 19:17, 22:17 (UTC+3)
-    - cron: "17 4,7,10,13,16,19 * * *"
-    # Her gün TR 09:41: "Aynı ürün, farklı fiyat" (5 ürün fiyat karşılaştırması)
-    - cron: "41 6 * * *"
-    # RADAR: TR 12:53 ve 20:23 (pazaryerlerinde fiyatı gerçekten düşen ürünler)
-    - cron: "53 9 * * *"
-    - cron: "23 17 * * *"
+    # Her saat (dakika 7). Bot zamanı gelmiş ve bugün yapılmamış işleri kendisi seçer (--auto):
+    # 09:00+ fiyat karşılaştırması, 12:00+ ve 20:00+ radar, 07-23 arası broşür taraması.
+    # GitHub bir turu atlarsa bir sonraki saatte telafi edilir.
+    - cron: "7 * * * *"
   workflow_dispatch:
     inputs:
       mode:
@@ -22,6 +19,7 @@ on:
           - karsilastirma  # günlük 5 ürün fiyat karşılaştırmasını şimdi yap
           - reels          # bugünkü karşılaştırmanın sadece Reels videosunu paylaş
           - radar          # pazaryeri radarını şimdi çalıştır
+          - otomatik       # zamanı gelmiş tüm işleri yap (saatlik çalıştırmanın aynısı)
 
 permissions:
   contents: write  # state/posted.json'u repoya geri yazmak için
@@ -67,10 +65,11 @@ jobs:
           X_ACCESS_SECRET: ${{ secrets.X_ACCESS_SECRET }}
         run: |
           MODE="${{ inputs.mode }}"
-          SCHED="${{ github.event.schedule }}"
-          if [ "$SCHED" = "53 9 * * *" ] || [ "$SCHED" = "23 17 * * *" ] || [ "$MODE" = "radar" ]; then
+          if [ "${{ github.event_name }}" = "schedule" ] || [ "$MODE" = "otomatik" ]; then
+            python main.py --auto
+          elif [ "$MODE" = "radar" ]; then
             python main.py --radar
-          elif [ "$SCHED" = "41 6 * * *" ] || [ "$MODE" = "karsilastirma" ]; then
+          elif [ "$MODE" = "karsilastirma" ]; then
             python main.py --compare
           elif [ "$MODE" = "reels" ]; then
             python main.py --reel-only
