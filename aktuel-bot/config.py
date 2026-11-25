@@ -105,6 +105,12 @@ COMPARE_LAT = 40.9909
 COMPARE_LON = 29.0303
 COMPARE_RADIUS_KM = 5
 
+# Karşılaştırmayı Reels videosu olarak da paylaş.
+COMPARE_REEL = True
+# Reels müziği: telifsiz bir mp3 dosyasının yolu (aktuel-bot klasörüne göre), ör. "assets/music/reel.mp3".
+# Boşsa video sessiz yayınlanır. Telifli müzik koyma: Instagram videoyu sessize alabilir ya da kaldırabilir.
+REEL_MUSIC = ""
+
 # Taranacak ürün grupları (her gruptan günde en fazla 1 ürün seçilir).
 COMPARE_KEYWORDS = [
     "süt", "yoğurt", "peynir", "yumurta", "tereyağı", "çay", "kahve", "makarna", "pirinç",

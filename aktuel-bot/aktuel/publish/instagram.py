@@ -100,6 +100,12 @@ class Instagram:
                          children=",".join(children), caption=caption)["id"]
         return self._publish(cont)
 
+    def post_reel(self, url: str, caption: str) -> str:
+        cid = self._req("POST", f"{self.user_id}/media", video_url=url, media_type="REELS",
+                        caption=caption, share_to_feed="true")["id"]
+        self._wait(cid, timeout=600)  # video işleme daha uzun sürer
+        return self._req("POST", f"{self.user_id}/media_publish", creation_id=cid)["id"]
+
     def post_story(self, url: str) -> str:
         cid = self._req("POST", f"{self.user_id}/media", image_url=url, media_type="STORIES")["id"]
         return self._publish(cid)

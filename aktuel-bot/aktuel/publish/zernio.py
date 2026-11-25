@@ -83,9 +83,10 @@ class Zernio:
     def upload(self, path: Path, public_id: str = "") -> str:
         """Dosyayı Zernio'ya yükler, herkese açık URL'sini döndürür."""
         data = path.read_bytes()
+        ctype = "video/mp4" if path.suffix.lower() == ".mp4" else "image/jpeg"
         pre = self._req("POST", "media/presign", json={
-            "filename": path.name, "contentType": "image/jpeg", "size": len(data)})
-        r = requests.put(pre["uploadUrl"], data=data, headers={"Content-Type": "image/jpeg"}, timeout=120)
+            "filename": path.name, "contentType": ctype, "size": len(data)})
+        r = requests.put(pre["uploadUrl"], data=data, headers={"Content-Type": ctype}, timeout=300)
         if r.status_code >= 400:
             raise ZernioError(f"medya yüklenemedi: HTTP {r.status_code}")
         return pre["publicUrl"]
@@ -117,6 +118,16 @@ class ZernioInstagram:
             "content": caption,
             "mediaItems": [{"type": "image", "url": u} for u in urls],
             "platforms": [entry],
+        })
+        return post.get("_id", "")
+
+    def post_reel(self, url: str, caption: str) -> str:
+        """Tek video = Reel (Zernio dokümanı: tek video her zaman Reel olarak yayınlanır)."""
+        post = self.z.create_post({
+            "content": caption,
+            "mediaItems": [{"type": "video", "url": url}],
+            "platforms": [{"platform": "instagram", "accountId": self.account_id,
+                           "platformSpecificData": {"shareToFeed": True}}],
         })
         return post.get("_id", "")
 
