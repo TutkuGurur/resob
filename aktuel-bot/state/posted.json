@@ -198,6 +198,41 @@
     "6b06ef35a838ef61160b68e0"
    ],
    "at": "2026-11-25T14:22:48+00:00"
+  },
+  "akakce:66302": {
+   "market": "a101",
+   "title": "Manav İndirim Broşürü",
+   "hash": 8769236981920741014,
+   "pages": 2,
+   "post_ids": [
+    "6b07c04c17a9a783e3d3b8b5"
+   ],
+   "story_ids": [
+    "6b07c06bb9908581d0609ded",
+    "6b07c072b9908581d0609e2f"
+   ],
+   "x_ids": [
+    "6b07c0801caedc36c669817f"
+   ],
+   "at": "2026-11-26T05:15:47+00:00"
+  },
+  "bim:a09e07f0-3e3e-4bc8-89e8-57cbde0f770d": {
+   "market": "bim",
+   "title": "29 Kasım Pazar",
+   "hash": 5500842284627958996,
+   "pages": 3,
+   "post_ids": [
+    "6b07c08adf1708afab4facb2"
+   ],
+   "story_ids": [
+    "6b07c0a36d4df61e4adebdf6",
+    "6b07c0ad4dc4e361ffb675d5",
+    "6b07c0b74dc4e361ffb67600"
+   ],
+   "x_ids": [
+    "6b07c0c5e3d503469e0d7e02"
+   ],
+   "at": "2026-11-26T05:16:57+00:00"
   }
  },
  "telegram_chat_id": 1112270321,
@@ -234,5 +269,8 @@
    "date": "2026-11-25",
    "product": "1091145650"
   }
- ]
+ ],
+ "radar_slots": {
+  "2026-11-26": []
+ }
 }
