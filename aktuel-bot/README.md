@@ -26,6 +26,13 @@ GitHub Actions ile her saat (dakika 7) uyanır ve zamanı gelmiş, bugün yapıl
 taraması. GitHub zamanlanmış görevleri bazen atladığı için kaçan iş bir sonraki saatte telafi edilir.
 Saatler `config.py`'de (`AUTO_*`, `COMPARE_HOUR`, `RADAR_SLOTS`).
 
+## Müzik
+
+`assets/music/` altındaki 4 parça vidIQ ile üretilmiş özgün, telifsiz enstrümantal müziklerdir
+(pop-funk, tropical house, radar synth, akustik pop). Reels ve hikâyelerde sırayla döner.
+Hikâyeler 10 sn'lik müzikli videolara çevrilir (`STORY_VIDEO`, `STORY_VIDEO_SECONDS`); müzik videonun
+süresine göre kırpılır ya da döngüyle uzatılır, başta/sonda yumuşak geçiş yapılır.
+
 ## RADAR: pazaryerlerinde gerçek fırsatlar
 
 Günde 2 kez (TR 12:53 ve 20:23) akakce.com "fiyatı düşen ürünler" taranır. Akakçe'nin fiyat geçmişi

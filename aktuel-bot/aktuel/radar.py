@@ -12,7 +12,7 @@ from urllib.parse import quote
 
 from PIL import Image
 
-from . import render
+from . import render, video
 from .http import get_bytes
 from .render_compare import tl
 from .render_radar import marketplace_style, render_story
@@ -119,8 +119,9 @@ def run(cfg, state, today: date, out_dir: Path, handle: str, ig=None, host=None,
 
     live = bool(ig or tg)
     posted = 0
+    media = video.story_videos(stories, cfg, today, offset=2) if ig else stories
     lines = []
-    for i, (d, p) in enumerate(zip(deals, stories), 1):
+    for i, (d, p) in enumerate(zip(deals, media), 1):
         lines.append(f"{i}. {d.name} – {tl(d.best.price)} ({d.best.marketplace})\n{d.best.url}")
         if not ig:
             continue

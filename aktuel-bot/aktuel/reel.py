@@ -87,6 +87,9 @@ def build(products, imgs, today: date, area: str, handle: str, out: Path,
         cmd += ["-stream_loop", "-1", "-i", str(music)]
     else:  # sessiz ses kanalı: bazı platformlar ses kanalı olmayan videoyu sorunlu işliyor
         cmd += ["-f", "lavfi", "-i", "anullsrc=r=44100:cl=stereo"]
+    if music and music.exists():
+        from .video import audio_filter
+        cmd += ["-af", audio_filter(total)]
     cmd += ["-t", f"{total:.2f}", "-vf", "fps=30,format=yuv420p", "-c:v", "libx264", "-preset", "veryfast",
             "-crf", "21", "-c:a", "aac", "-b:a", "128k", "-shortest", "-movflags", "+faststart", str(out)]
     subprocess.run(cmd, check=True, cwd=fdir)

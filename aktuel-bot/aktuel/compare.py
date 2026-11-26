@@ -10,7 +10,7 @@ from pathlib import Path
 
 from PIL import Image
 
-from . import render
+from . import render, video
 from .http import get_bytes
 from .render_compare import market_name, render_cover, render_product, tl, date_tr
 from .sources import marketfiyati
@@ -113,7 +113,8 @@ def run_reel_only(cfg, state, today: date, out_dir: Path, handle: str, ig=None, 
     imgs = [_img(p.image_url) for p in picked]
     cdir = out_dir / f"reels_{today.isoformat()}"
     cdir.mkdir(parents=True, exist_ok=True)
-    music = Path(__file__).resolve().parent.parent / cfg.REEL_MUSIC if cfg.REEL_MUSIC else None
+    music = (Path(__file__).resolve().parent.parent / cfg.REEL_MUSIC if cfg.REEL_MUSIC
+             else video.pick_track(cfg, today, 0))
     path = reel.build(picked, imgs, today, cfg.COMPARE_AREA_LABEL, handle, cdir / "reel.mp4", music)
     if not path:
         return 1
@@ -170,7 +171,8 @@ def run(cfg, state, today: date, out_dir: Path, handle: str, ig=None, host=None,
     if getattr(cfg, "COMPARE_REEL", False):
         from . import reel
         try:
-            music = Path(__file__).resolve().parent.parent / cfg.REEL_MUSIC if cfg.REEL_MUSIC else None
+            music = (Path(__file__).resolve().parent.parent / cfg.REEL_MUSIC if cfg.REEL_MUSIC
+                     else video.pick_track(cfg, today, 0))
             reel_path = reel.build(picked, imgs, today, area, handle, cdir / "reel.mp4", music)
         except Exception as e:
             log.error("  Reels üretilemedi: %s", e)
@@ -197,7 +199,7 @@ def run(cfg, state, today: date, out_dir: Path, handle: str, ig=None, host=None,
             raise RuntimeError(f"Instagram 24 saatlik kotası yetersiz (kalan {left}, gereken {need}); "
                                f"sonraki turda denenecek")
         ig.post_images([up(p) for p in posts], cap)
-        for s in stories:
+        for s in video.story_videos(stories, cfg, today, offset=1):
             ig.post_story(up(s))
         if reel_path and hasattr(ig, "post_reel"):
             try:
