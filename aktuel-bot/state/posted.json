@@ -233,6 +233,55 @@
     "6b07c0c5e3d503469e0d7e02"
    ],
    "at": "2026-11-26T05:16:57+00:00"
+  },
+  "akakce:66304": {
+   "market": "a101",
+   "title": "Aldın Aldın Ekstra Broşürü",
+   "hash": 8992730309571425446,
+   "pages": 7,
+   "post_ids": [
+    "6b0849babdc906f0832ebf22"
+   ],
+   "story_ids": [
+    "6b084a21a5c081ff02f7a53d",
+    "6b084a27bb26cf150e88be98"
+   ],
+   "x_ids": [
+    "6b084a33cfa04dcca60e5b2e"
+   ],
+   "at": "2026-11-26T15:03:24+00:00"
+  },
+  "akakce:66306": {
+   "market": "a101",
+   "title": "Aldın Aldın Ekstra İndirim Broşürü",
+   "hash": 8850653173062996370,
+   "pages": 1,
+   "post_ids": [
+    "6b084a3f24799ae31425683b"
+   ],
+   "story_ids": [
+    "6b084a4c322b2c3d6e2dd6d8"
+   ],
+   "x_ids": [
+    "6b084a52d906aabe0a400612"
+   ],
+   "at": "2026-11-26T15:03:50+00:00"
+  },
+  "akakce:66308": {
+   "market": "a101",
+   "title": "Pati İndirim Broşürü",
+   "hash": 9611220042114569254,
+   "pages": 1,
+   "post_ids": [
+    "6b084a58d74c669b990168ab"
+   ],
+   "story_ids": [
+    "6b084a6396f5ef427a5af3ff"
+   ],
+   "x_ids": [
+    "6b084a6a3f43d4e4960212ca"
+   ],
+   "at": "2026-11-26T15:04:14+00:00"
   }
  },
  "telegram_chat_id": 1112270321,
