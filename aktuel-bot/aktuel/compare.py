@@ -177,18 +177,25 @@ def run(cfg, state, today: date, out_dir: Path, handle: str, ig=None, host=None,
     log.info("  hazır: %s (%d gönderi görseli, %d hikâye)", cdir, len(posts), len(stories))
 
     live = bool(ig or tg or xc)
-    if xc:
+    stories = stories[:getattr(cfg, "COMPARE_MAX_STORIES", len(stories))]
+    x_done = state.data.setdefault("compare_x", {})
+    if xc and not x_done.get(today.isoformat()):
         try:
             ids = xc.thread(x_text(picked, today), posts, 2, "👇 Diğer ürünler")
             log.info("  X'te paylaşıldı: %d post", len(ids))
+            x_done[today.isoformat()] = True
         except Exception as e:
             log.error("  X HATA: %s", e)
+    for d in [d for d in x_done if d < (today - timedelta(days=7)).isoformat()]:
+        del x_done[d]
     if ig:
         def up(p: Path) -> str:
             return host.upload(p, f"{cdir.name}_{p.stem}")
+        need = 1 + len(stories) + (1 if reel_path else 0)
         left = ig.quota_left()
-        if left is not None and left < 1 + len(stories):
-            raise RuntimeError(f"Instagram kotası yetersiz (kalan {left})")
+        if left is not None and left < need:
+            raise RuntimeError(f"Instagram 24 saatlik kotası yetersiz (kalan {left}, gereken {need}); "
+                               f"sonraki turda denenecek")
         ig.post_images([up(p) for p in posts], cap)
         for s in stories:
             ig.post_story(up(s))

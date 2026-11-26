@@ -44,7 +44,9 @@ class Zernio:
         for attempt in range(4):
             r = self.s.request(method, f"{API}/{path}", timeout=120, **kw)
             if r.status_code == 429:
-                time.sleep(int(r.headers.get("retry-after", 30)) + 1)
+                if attempt >= 1:  # kota dolduysa dakikalarca bekleme, hata ver
+                    break
+                time.sleep(min(int(r.headers.get("retry-after", 20)), 30) + 1)
                 continue
             try:
                 body = r.json()
@@ -145,8 +147,15 @@ class ZernioInstagram:
     def __init__(self, z: Zernio, account_id: str):
         self.z, self.account_id = z, account_id
 
-    def quota_left(self):
-        return None  # Zernio Instagram'ın 100/24s sınırını kendisi uygular
+    def quota_left(self) -> int | None:
+        """Instagram'ın 24 saatlik API paylaşım hakkından kalan (bilinmiyorsa None)."""
+        try:
+            d = self.z._req("GET", f"accounts/{self.account_id}/instagram/publishing-limit")
+            d = d.get("data", d) if isinstance(d, dict) else {}
+            return int(d["quotaTotal"]) - int(d.get("quotaUsage", 0))
+        except Exception as e:
+            log.warning("  Instagram kotası okunamadı: %s", e)
+            return None
 
     def post_images(self, urls: list[str], caption: str, user_tags=None) -> str:
         # Not: hesap etiketleme (user_tags) Zernio'da henüz bağlanmadı; etiketsiz paylaşılır.

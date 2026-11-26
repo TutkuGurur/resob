@@ -110,14 +110,19 @@ def prepare(b: Brochure, m: dict, today: date, out_dir: Path, handle: str) -> di
             "hash": dhash(pages[0])}
 
 
+class QuotaError(RuntimeError):
+    pass
+
+
 def publish(b: Brochure, m: dict, art: dict, ig, host) -> dict:
     tags = None
     if m.get("ig_username"):
         tags = [{"username": m["ig_username"], "x": 0.5, "y": 0.5}]
     need = len(art["groups"]) + len(art["stories"])
     left = ig.quota_left()
-    if left is not None and left < need:
-        raise RuntimeError(f"Instagram günlük kotası yetersiz (kalan {left}, gereken {need})")
+    if left is not None and left - need < cfg.IG_RESERVE_FOR_PRIORITY:
+        raise QuotaError(f"Instagram 24 saatlik kotası yetersiz (kalan {left}, gereken {need}, "
+                         f"radar/karşılaştırma için ayrılan {cfg.IG_RESERVE_FOR_PRIORITY}); sonraki turda denenecek")
 
     def up(p: Path) -> str:
         return host.upload(p, f"{art['dir'].name}_{p.stem}")
@@ -340,11 +345,15 @@ def main(argv=None) -> int:
             slot = due[-1] if due else None
             if slot and slot not in slots:
                 log.info("== Radar (%s turu)", slot)
+                ok = False
                 try:
-                    radar.run(cfg, state, today, run_dir, handle, ig, host, tg)
+                    ok = radar.run(cfg, state, today, run_dir, handle, ig, host, tg) is not False
                 except Exception as e:
                     log.error("Radar HATA: %s", e)
-                slots.append(slot)
+                if ok:
+                    slots.append(slot)
+                else:
+                    log.warning("Radar turu paylaşılamadı, sonraki saatte tekrar denenecek.")
                 state.save()
         log.info("== Broşür taraması")
         # aşağıdaki normal broşür akışıyla devam
@@ -435,6 +444,9 @@ def main(argv=None) -> int:
             log.info("  hazır: %s (%d gönderi görseli, %d hikâye)", art["dir"],
                      sum(len(g) for g in art["groups"]), len(art["stories"]))
             done += 1
+        except QuotaError as e:
+            log.warning("  %s", e)
+            break  # kota dolu: kalan broşürleri bir sonraki tura bırak
         except Exception as e:
             errors += 1
             log.error("  HATA: %s", e)

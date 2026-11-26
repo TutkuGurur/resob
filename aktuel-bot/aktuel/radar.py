@@ -100,7 +100,15 @@ def run(cfg, state, today: date, out_dir: Path, handle: str, ig=None, host=None,
     deals = find_deals(cfg, recent)
     if not deals:
         log.info("[Radar] bugün yeni gerçek fırsat yok.")
-        return 0
+        return True
+    if ig and hasattr(ig, "quota_left"):
+        left = ig.quota_left()
+        if left is not None and left < len(deals):
+            if left <= 0:
+                log.warning("[Radar] Instagram 24 saatlik kotası dolu; sonraki turda denenecek.")
+                return False
+            deals = deals[:left]
+            log.info("[Radar] kota nedeniyle %d ürünle sınırlandı", left)
 
     rdir = out_dir / f"radar_{today.isoformat()}_{len(rs)}"
     stories = []
@@ -110,6 +118,7 @@ def run(cfg, state, today: date, out_dir: Path, handle: str, ig=None, host=None,
     log.info("  hazır: %s (%d hikâye)", rdir, len(stories))
 
     live = bool(ig or tg)
+    posted = 0
     lines = []
     for i, (d, p) in enumerate(zip(deals, stories), 1):
         lines.append(f"{i}. {d.name} – {tl(d.best.price)} ({d.best.marketplace})\n{d.best.url}")
@@ -132,6 +141,7 @@ def run(cfg, state, today: date, out_dir: Path, handle: str, ig=None, host=None,
             log.error("  hikâye #%d HATA: %s", i, e)
             continue
         rs[d.id] = today.isoformat()
+        posted += 1
 
     if tg:
         body = "\n\n".join(html.escape(x) for x in lines)
@@ -148,4 +158,4 @@ def run(cfg, state, today: date, out_dir: Path, handle: str, ig=None, host=None,
     # eski kayıtları temizle
     for pid in [k for k, v in rs.items() if v < (today - timedelta(days=60)).isoformat()]:
         del rs[pid]
-    return 0
+    return posted > 0 or not ig

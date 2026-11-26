@@ -72,7 +72,7 @@ MAX_DAYS_UNTIL_START = 3
 # Bir broşürden en fazla kaç sayfa paylaşılsın.
 # Instagram kaydırmalı gönderi en fazla 10 görsel alır; fazlası ayrı gönderilere bölünür.
 MAX_POST_PAGES = 10
-MAX_STORY_PAGES = 10
+MAX_STORY_PAGES = 2   # Instagram API 24 saatte ~50 paylaşım (hikâyeler dahil) izin veriyor
 CAROUSEL_SIZE = 10
 
 # Bir çalıştırmada en fazla kaç broşür paylaşılsın. Instagram API 24 saatte sınırlı sayıda
@@ -147,3 +147,7 @@ AUTO_START_HOUR = 7          # bu saatten önce paylaşım yok (TR saati)
 AUTO_END_HOUR = 23           # bu saatten sonra paylaşım yok
 COMPARE_HOUR = 9             # fiyat karşılaştırması bu saatten sonra (günde 1)
 RADAR_SLOTS = [("ogle", 12), ("aksam", 20)]   # radar turları ve başlama saatleri
+
+# Instagram 24 saatlik paylaşım kotası yönetimi (gönderi + hikâye + Reels hepsi sayılır).
+IG_RESERVE_FOR_PRIORITY = 12   # broşürler paylaşılırken radar ve karşılaştırma için ayrılan hak
+COMPARE_MAX_STORIES = 3        # karşılaştırmadan kaç hikâye (kapak + ilk ürünler)
