@@ -109,7 +109,7 @@ COMPARE_RADIUS_KM = 5
 COMPARE_REEL = True
 # Reels müziği: telifsiz bir mp3 dosyasının yolu (aktuel-bot klasörüne göre), ör. "assets/music/reel.mp3".
 # Boşsa video sessiz yayınlanır. Telifli müzik koyma: Instagram videoyu sessize alabilir ya da kaldırabilir.
-REEL_MUSIC = ""
+REEL_MUSIC = ""   # boşsa aşağıdaki 4 parça sırayla döner
 
 # Taranacak ürün grupları (her gruptan günde en fazla 1 ürün seçilir).
 COMPARE_KEYWORDS = [
@@ -151,3 +151,15 @@ RADAR_SLOTS = [("ogle", 12), ("aksam", 20)]   # radar turları ve başlama saatl
 # Instagram 24 saatlik paylaşım kotası yönetimi (gönderi + hikâye + Reels hepsi sayılır).
 IG_RESERVE_FOR_PRIORITY = 12   # broşürler paylaşılırken radar ve karşılaştırma için ayrılan hak
 COMPARE_MAX_STORIES = 3        # karşılaştırmadan kaç hikâye (kapak + ilk ürünler)
+
+# ---------------------------------------------------------------------------
+# Müzik: vidIQ ile üretilen 4 özgün, telifsiz parça. Reels ve hikâyelerde sırayla döner.
+# ---------------------------------------------------------------------------
+MUSIC_TRACKS = [
+    "assets/music/1_pop_funk.mp3",
+    "assets/music/2_tropical_house.mp3",
+    "assets/music/3_radar_synth.mp3",
+    "assets/music/4_akustik_pop.mp3",
+]
+STORY_VIDEO = True            # hikâyeleri müzikli kısa videoya çevir
+STORY_VIDEO_SECONDS = 10      # hikâye videosu süresi; müzik bu süreye göre kırpılır/döngülenir

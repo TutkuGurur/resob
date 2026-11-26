@@ -107,5 +107,9 @@ class Instagram:
         return self._req("POST", f"{self.user_id}/media_publish", creation_id=cid)["id"]
 
     def post_story(self, url: str) -> str:
-        cid = self._req("POST", f"{self.user_id}/media", image_url=url, media_type="STORIES")["id"]
+        if url.split("?")[0].lower().endswith(".mp4"):
+            cid = self._req("POST", f"{self.user_id}/media", video_url=url, media_type="STORIES")["id"]
+            self._wait(cid, timeout=600)
+        else:
+            cid = self._req("POST", f"{self.user_id}/media", image_url=url, media_type="STORIES")["id"]
         return self._publish(cid)

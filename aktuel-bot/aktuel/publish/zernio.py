@@ -178,8 +178,9 @@ class ZernioInstagram:
         return post.get("_id", "")
 
     def post_story(self, url: str) -> str:
+        kind = "video" if url.split("?")[0].lower().endswith(".mp4") else "image"
         post = self.z.create_post({
-            "mediaItems": [{"type": "image", "url": url}],
+            "mediaItems": [{"type": kind, "url": url}],
             "platforms": [{"platform": "instagram", "accountId": self.account_id,
                            "platformSpecificData": {"contentType": "story"}}],
         })

@@ -131,8 +131,10 @@ def publish(b: Brochure, m: dict, art: dict, ig, host) -> dict:
     for group, cap in zip(art["groups"], art["captions"]):
         post_ids.append(ig.post_images([up(p) for p in group], cap, tags))
         log.info("  gönderi paylaşıldı: %s", post_ids[-1])
+    from aktuel import video
+    offset = list(cfg.MARKETS).index(b.market) if b.market in cfg.MARKETS else 0
     story_ids = []
-    for p in art["stories"]:
+    for p in video.story_videos(art["stories"], cfg, datetime.now(TR_TZ).date(), offset=offset):
         story_ids.append(ig.post_story(up(p)))
     log.info("  %d hikâye paylaşıldı", len(story_ids))
     return {"post_ids": post_ids, "story_ids": story_ids}
