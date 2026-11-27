@@ -299,6 +299,23 @@
     "6b091dd867e1243ac77a68d4"
    ],
    "at": "2026-11-27T06:06:23+00:00"
+  },
+  "akakce:66439": {
+   "market": "a101",
+   "title": "Haftanın Yıldızları",
+   "hash": 7887906636655706894,
+   "pages": 3,
+   "post_ids": [
+    "6b099a867f2a599176fd3a9b"
+   ],
+   "story_ids": [
+    "6b099ab29c4aed553b2fa8a7",
+    "6b099ab582b0f7bbf55c1976"
+   ],
+   "x_ids": [
+    "6b099abe9c4aed553b2fa8e6"
+   ],
+   "at": "2026-11-27T14:59:15+00:00"
   }
  },
  "telegram_chat_id": 1112270321,
