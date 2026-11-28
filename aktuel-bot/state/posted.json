@@ -316,6 +316,39 @@
     "6b099abe9c4aed553b2fa8e6"
    ],
    "at": "2026-11-27T14:59:15+00:00"
+  },
+  "bim:932fd7a2-ae63-4b0c-9c4a-4880e143e6f2": {
+   "market": "bim",
+   "title": "28 Kasım-04 Aralık",
+   "hash": 7544175241913928683,
+   "pages": 2,
+   "post_ids": [
+    "6b0a5207e4d5ce9eeb03d43a"
+   ],
+   "story_ids": [
+    "6b0a52167d14a57f9a6ab486"
+   ],
+   "x_ids": [
+    "6b0a521b4a32f01b926006a9"
+   ],
+   "at": "2026-11-28T04:01:34+00:00"
+  },
+  "bim:e49bf59b-503e-4db0-a367-204f83a8273e": {
+   "market": "bim",
+   "title": "01 Aralık Salı",
+   "hash": 5052878053860299995,
+   "pages": 3,
+   "post_ids": [
+    "6b0a52237d14a57f9a6ab4a8"
+   ],
+   "story_ids": [
+    "6b0a524a2de37a39eef16aa3",
+    "6b0a524de4d5ce9eeb03d4b7"
+   ],
+   "x_ids": [
+    "6b0a5253f7491173ee4c0506"
+   ],
+   "at": "2026-11-28T04:02:32+00:00"
   }
  },
  "telegram_chat_id": 1112270321,
@@ -414,7 +447,8 @@
   "2026-11-27": [
    "ogle",
    "aksam"
-  ]
+  ],
+  "2026-11-28": []
  },
  "compare_x": {
   "2026-11-27": true
